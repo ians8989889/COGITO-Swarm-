@@ -1,0 +1,37 @@
+OpenClaw security audit
+Summary: 1 critical · 3 warn · 1 info
+Run deeper: openclaw security audit --deep
+
+CRITICAL
+models.small_params Small models require sandboxing and web tools disabled
+  Small models (<=300B params) detected:
+- ollama/qwen3:14b (14B) @ agents.defaults.model.fallbacks (unsafe; sandbox=off; web=[web_search, web_fetch])
+Uncontrolled input tools allowed: web_search, web_fetch.
+Small models are not recommended for untrusted inputs.
+  Fix: If you must use small models, enable sandboxing for all sessions (agents.defaults.sandbox.mode="all") and disable web_search/web_fetch/browser (tools.deny=["group:web","browser"]).
+
+WARN
+gateway.trusted_proxies_missing Reverse proxy headers are not trusted
+  gateway.bind is loopback and gateway.trustedProxies is empty. If you expose the Control UI through a reverse proxy, configure trusted proxies so local-client checks cannot be spoofed.
+  Fix: Set gateway.trustedProxies to your proxy IPs or keep the Control UI local-only.
+models.weak_tier Some configured models are below recommended tiers
+  Smaller/older models are generally more susceptible to prompt injection and tool misuse.
+- github-copilot/gpt-4o (Below GPT-5 family) @ agents.defaults.model.primary
+  Fix: Use the latest, top-tier model for any bot with tools or untrusted inboxes. Avoid Haiku tiers; prefer GPT-5+ and Claude 4.5+.
+security.trust_model.multi_user_heuristic Potential multi-user setup detected (personal-assistant model warning)
+  Heuristic signals indicate this gateway may be reachable by multiple users:
+- channels.telegram.groupPolicy="allowlist" with configured group targets
+Runtime/process tools are exposed without full sandboxing in at least one context.
+Potential high-impact tool exposure contexts:
+- agents.defaults (sandbox=off; runtime=[exec, process]; fs=[read, write, edit, apply_patch]; fs.workspaceOnly=false)
+OpenClaw's default security model is personal-assistant (one trusted operator boundary), not hostile multi-tenant isolation on one shared gateway.
+  Fix: If users may be mutually untrusted, split trust boundaries (separate gateways + credentials, ideally separate OS users/hosts). If you intentionally run shared-user access, set agents.defaults.sandbox.mode="all", keep tools.fs.workspaceOnly=true, deny runtime/fs/web tools unless required, and keep personal/private identities + credentials off that runtime.
+
+INFO
+summary.attack_surface Attack surface summary
+  groups: open=0, allowlist=1
+tools.elevated: enabled
+hooks.webhooks: disabled
+hooks.internal: disabled
+browser control: enabled
+trust model: personal assistant (one trusted operator boundary), not hostile multi-tenant on one shared gateway
