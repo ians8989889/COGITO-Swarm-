@@ -17,30 +17,19 @@
 - 否則一律用文字回答
 - 直接行動，少廢話
 
-### 模型配置（2026-04-08 更新）
-- **首選 / 主力**：`ollama/qwen3:14b`（本機免費，優先調用）✅ 已裝
-- **複雜 Agent 推理任務**：`openrouter/openai/opus-4.6`
-- **Telegram Bot 快速回覆**：`anthropic/claude-haiku-4-5`
-- 搭配 Prompt Caching（省 90%）＋ Batch API（省 50%），最高可降低約 95% 成本
-- Fallback 順序（本機優先）：
-  1. `ollama/qwen3:14b`（本機）⭐ 新首選
-  2. `ollama/qwen3:14b-opt`（本機）
-  3. `ollama/gemma4:e4b`（本機）
-  4. `openrouter/auto`
-  5. `anthropic/claude-haiku-4-5`
-  6. `anthropic/claude-sonnet-4-6`
-  7. `openrouter/openai/opus-4.6`
+### 模型配置（2026-04-22 優化）
+- **首選**：`ollama/qwen3:14b`（本機免費）✅ 已裝
+- **Fallback**：
+  1. `ollama/qwen3:14b-opt`（本機）
+  2. `ollama/gemma4:e4b`（本機）
+  3. `openrouter/auto` → `openrouter/openai/opus-4.6`（複雜推理）
+  4. `anthropic/claude-haiku-4-5`（Telegram 快速回覆）
+- 成本優化：Prompt Caching（-90%）+ Batch API（-50%）
 
 ### 模型切換流程
-**切換模型前必做：**
-1. 生成當前對話摘要（key decisions、context、ongoing tasks）
-2. 保存到 `memory/model-switch-summary-YYYY-MM-DD.md`
-3. 通知蝦老大摘要已保存
-4. 執行切換
-
-**新模型啟動後必做：**
-1. 讀取 `memory/model-switch-summary-YYYY-MM-DD.md`
-2. 載入上下文後繼續工作
+1. 生成對話摘要 → 保存 `memory/model-switch-summary-YYYY-MM-DD.md`
+2. 通知蝦老大
+3. 切換模型後讀取摘要、載入上下文
 
 ---
 
@@ -87,6 +76,15 @@
   - 依賴：requests、python-dotenv、alibabacloud-oss-v2、pymediainfo
   - 狀態：待認證（執行 `python3 scripts/auth.py login`）
 
+## 🔐 BOT 允許名單配置（2026-04-22 15:02）
+
+- **唯一授權用戶 ID**：`8397380746`（蝦老大 Eric Su）
+- **配置狀態**：✅ 已啟用
+- **自動拒絕機制**：啟用（非授權 ID 一律拒絕）
+- **相關檔案**：`SECURITY_ALLOWLIST.md`
+
+---
+
 ## 🚨 安全事件記錄（2026-04-15）
 
 ### 入侵嘗試偵測
@@ -112,10 +110,15 @@ telegram, getUpdates, bot.*token, api.*telegram, offset,
 curl.*telegram, password, apiKey, secret, rm, dd, mkfs, sudo
 ```
 
-### 安全狀態
+### 安全狀態（2026-04-15）
 - 🟢 當前：安全（已拒絕入侵）
 - 🔐 防禦：增強版審計 + 自動拒絕
 - 📊 監控：每 8 小時自動檢查
+
+### 安全狀態（2026-04-22）
+- 🟢 當前：安全（允許名單已配置）
+- 🔐 防禦：Telegram 唯一用戶 ID 認證
+- 📊 監控：自動拒絕非授權訊息
 
 ---
 

@@ -1,0 +1,40 @@
+# 測試檔案
+*.mp3
+*.aiff
+*.wav
+*.log
+
+# 臨時指令稿
+create-voice.sh
+send-*.sh
+generate-voice.js
+enable-ollama.sh
+final-ollama-setup.sh
+setup-ollama-default.sh
+ollama_env_setup.sh
+security-audit.sh
+security-audit-enhanced.sh
+
+# Python 測試
+*.py
+__pycache__/
+.venv/
+
+# 舊日報告
+daily_summary-*.txt
+security_report-*.txt
+
+# 系統檔案
+.DS_Store
+.clawhub/
+.openclaw/workspace-state.json
+
+# Node 依賴
+node_modules/
+
+# 嵌入式 git repo（應用 submodule）
+litmedia/
+skills/litmedia-skill/
+
+# 歸檔資料夾（保留版本控制）
+# memory/archive/ 保留（用於查詢舊資料）
