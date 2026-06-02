@@ -1,0 +1,8 @@
+board/leader.status
+token_usage.log
+.bot-id
+config.env
+cogito/daily.md
+.DS_Store
+*.swp
+*~
