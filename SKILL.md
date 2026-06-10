@@ -1,4 +1,4 @@
-# 🦐🧠 COGITO-Swarm v1.2 — A Multi-Bot System That Thinks Proactively and Collaborates Cheaply
+# 🦐🧠 COGITO-Swarm v1.3 — A Multi-Bot System That Thinks Proactively, Collaborates Cheaply, and Marks Uncertainty
 
 > ⚠️ **Experimental tool, provided AS IS, use at your own risk. Read `DISCLAIMER.md` and `COMPLIANCE.md` before use. Not for high-risk use cases.**
 >
@@ -38,6 +38,7 @@ COGITO-Swarm's solution: **only the Leader has a heartbeat; the heartbeat first 
 | 03 | Speech License | Avoid talking to oneself (assigned+new+non-dup) | `cogito/GATE.md` |
 | 04 | Group Deliberation | Form consensus (Idea→Research→Critic→Planner→Leader) | `protocols/EVENT_PROTOCOL.md` (convene) |
 | 05 | Reality Protocol | Eliminate hallucination (Intent/Action/Evidence/Claim/Confidence) | `protocols/EVIDENCE.md` + `OUTPUT_CONTRACT.md` |
+| 05b | Uncertainty Marking | Lightweight anti-hallucination for knowledge claims: tiered marks + human triage | `protocols/UNCERTAINTY.md` |
 | 06 | Decision Contract | proposal/owner/deadline/confidence | `board/decisions.md` |
 | 07 | Memory Governor | Live/Working/Summary/Archive | `cogito/MEMORY.md` |
 | 08 | Shared Learning Guard | source≥2 / verify≥1 / conf>0.85 | `learned/` + `config.env` |
@@ -128,4 +129,4 @@ Leader heartbeat wakes
 
 > 📍 Want to know who this framework fits, what the alternatives are, and how to migrate to LangGraph / Claude Agent SDK if you ever go to production? Read `POSITIONING.md`.
 
-> 🦐 "One initiates, three verify, the shrimp swarm executes — and this time, no evidence means you don't get to say it's done." — COGITO-Swarm v1.2
+> 🦐 "One initiates, three verify, the shrimp swarm executes — no evidence means you don't get to say it's done. And when you don't know? Mark it. Let the human decide." — COGITO-Swarm v1.3

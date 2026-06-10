@@ -111,3 +111,4 @@ Dual confirmation (`LEARN_REQUIRE_DUAL_CONFIRM`) prevents a one-off hallucinatio
 | **New (v1.1)** | `protocols/ENSEMBLE.md` (router), `protocols/VERIFY-BAGGING.md`, `protocols/REFINE-BOOSTING.md`, `scripts/ensemble_route.sh`, config `ENSEMBLE_MODE`/`BAGGING_*`/`BOOSTING_*` |
 | **New (v1.2, absorbs Gemini)** | `protocols/OUTPUT_CONTRACT.md` (compute/presentation separation + Action-First + single tag), config `COMMS_MODE`/`ACTION_FIRST`/`TG_OUTPUT_ONLY` |
 | **New (v1.2, absorbs ChatGPT)** | `cogito/MEMORY.md` (Memory Governor), `board/decisions.md` (Decision Contract), EVIDENCE `CONFIDENCE` field, config quantified learning thresholds `LEARN_MIN_SOURCES`/`LEARN_MIN_VERIFY`/`LEARN_MIN_CONFIDENCE` |
+| **New (v1.3)** | `protocols/UNCERTAINTY.md` — lightweight anti-hallucination: tiered confidence marks + human triage. Complements EVIDENCE for knowledge/memory claims (not execution). `[確信]`/`[推測]`/`[待查]` + RLHF alignment loop. |
