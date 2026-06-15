@@ -10,6 +10,7 @@
 >
 > **v1.1:** "Boosting" renamed and split into Bagging (voting) + Boosting (refinement), with `ENSEMBLE_MODE` auto-routing.
 > **v1.2:** Absorbed Gemini's **compute/presentation separation** (collaborate on the board, TG broadcasts only) and **Action-First** (halt-and-fetch), plus ChatGPT's **Decision Contract / Memory Governor / Confidence / quantified learning thresholds**.
+> **v1.3.1:** **Emergency recovery + fault tolerance** — TG health monitoring, crash loop fix (`gateway restart`), CollabCore degrade rules, `TROUBLESHOOTING.md`, `EMERGENCY_SOP.md`.
 
 This is not a manual, it's a **remote control**. When you need to switch a behavior, read just that page — don't stuff the whole package into context.
 
@@ -44,8 +45,10 @@ COGITO-Swarm's solution: **only the Leader has a heartbeat; the heartbeat first 
 | 08 | Shared Learning Guard | source≥2 / verify≥1 / conf>0.85 | `learned/` + `config.env` |
 | 09 | Execution Gate | No execution evidence → no completion claim | `scripts/evidence_check.sh` |
 | 10 | Leader Governance | Think with many, output from one | `souls/*.soul.md` + `OUTPUT_CONTRACT.md` |
+| 11 | Emergency Recovery | Diagnose & recover from TG crash / bot failure / CollabCore degrade | `TROUBLESHOOTING.md` + `EMERGENCY_SOP.md` |
 
 > Recommended pipeline: **Curiosity → Bagging → Debate → Boosting → Execute → Verify → Learn**
+> When broken: **Check TG → Restart gateway → Test in group** (see TROUBLESHOOTING.md)
 
 ---
 
@@ -60,6 +63,7 @@ COGITO-Swarm's solution: **only the Leader has a heartbeat; the heartbeat first 
 | ⑤ Ask/verify with cloud LLMs via API | Ensemble verification: Bagging vote + Boosting refine (auto-routed) | `protocols/ENSEMBLE.md` |
 | ⑥ Real execution results, no hallucination/fake replies | Evidence ledger + **Action-First** (halt-and-fetch) + Confidence self-rating | `protocols/EVIDENCE.md`, `protocols/OUTPUT_CONTRACT.md` |
 | ⑦ Integrate the two frameworks | This folder is it | All |
+| ⑧ Recover from failures (TG crash, bot offline) | Emergency SOP + troubleshooting flow + CollabCore degrade rules | `EMERGENCY_SOP.md`, `TROUBLESHOOTING.md` |
 
 ---
 
@@ -129,4 +133,4 @@ Leader heartbeat wakes
 
 > 📍 Want to know who this framework fits, what the alternatives are, and how to migrate to LangGraph / Claude Agent SDK if you ever go to production? Read `POSITIONING.md`.
 
-> 🦐 "One initiates, three verify, the shrimp swarm executes — no evidence means you don't get to say it's done. And when you don't know? Mark it. Let the human decide." — COGITO-Swarm v1.3
+> 🦐 "One initiates, three verify, the shrimp swarm executes — no evidence means you don't get to say it's done. When you don't know? Mark it. Let the human decide. And when it breaks? Gateway restart. It's almost always gateway restart." — COGITO-Swarm v1.3.1

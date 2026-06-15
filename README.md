@@ -1,4 +1,4 @@
-# 🦐🧠 COGITO-Swarm v1.2
+# 🦐🧠 COGITO-Swarm v1.3.1
 
 **A multi-bot system that thinks proactively, collaborates cheaply, and isn't allowed to lie.**
 Integrated from COGITO v4 (proactive thinking) + Shrimp-OS v6 (multi-bot collaboration).
@@ -60,10 +60,21 @@ learned/            ← Integrated learning (dual-confirmation tiers)
 ## Known limitations (honest)
 
 - Not production: no auto-restart. Parallel spawn cap ~3–5.
+- **TG is a single point of failure.** All inter-bot communication goes through Telegram. When TG crashes (common symptom: `health-monitor: restarting` loop), the entire swarm goes silent. Fix: `openclaw gateway restart` on each machine. See `TROUBLESHOOTING.md`.
 - The evidence mechanism guards against "well-meaning hallucination," not deliberate forgery (reduced via Advisor + Bagging vote cross-checks).
 - Ensemble (Bagging/Boosting) needs an OpenRouter or equivalent API key; cloud model versions change.
 - OpenClaw ecosystem only; switching to CrewAI/LangGraph requires rewriting the spawn layer.
 - ⚖️ Compliance: it speaks proactively, sends data to multiple cloud models, and acts autonomously — read `COMPLIANCE.md` before launch, especially "redact PII sent to the cloud" and "disclose the AI identity."
+
+## Troubleshooting
+
+🩺 Bot not responding? See `TROUBLESHOOTING.md` for the diagnostic flow.
+🚨 Emergency? See `EMERGENCY_SOP.md` for fault levels and recovery steps.
+
+Quick fix for most issues:
+```bash
+openclaw gateway restart
+```
 
 ---
 

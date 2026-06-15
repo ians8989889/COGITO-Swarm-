@@ -1,4 +1,4 @@
-# 🏗️ COGITO-Swarm v1.2 — Architecture & Design Rationale
+# 🏗️ COGITO-Swarm v1.3.1 — Architecture & Design Rationale
 
 This page is for the "builder": why it's designed this way, how tokens are counted, how state flows.
 You don't need to read this for day-to-day operation.
@@ -84,7 +84,48 @@ Dual confirmation (`LEARN_REQUIRE_DUAL_CONFIRM`) prevents a one-off hallucinatio
 
 ---
 
-## 6. Known limitations (honest)
+## 6. TG Communication Layer (Single Point of Failure) 🚨
+
+**All inter-bot collaboration in COGITO-Swarm depends on Telegram.**
+
+The TG group chat is the communication backbone for:
+- `sessions_spawn` — spawning Workers/Advisors as subagents
+- `message()` — reporting results, convening, broadcasting
+- CollabCore — round-table discussions
+
+**When TG goes down, the entire swarm goes silent.**
+
+### TG Crash Loop (Most Common Failure)
+
+**Symptom:** All bots stop responding. Log shows every ~10 minutes:
+```
+[telegram:default] health-monitor: restarting (reason: stopped)
+```
+
+**Root cause:** TG subsystem instability → health monitor restarts → crashes again → loop.
+
+**Fix:**
+```bash
+openclaw gateway restart
+```
+On every bot machine.
+
+**Prevention:** Install a TG health-check cron (see `TROUBLESHOOTING.md`).
+
+### CollabCore Degrade Rules
+
+| Situation | Behavior |
+|-----------|----------|
+| Chairman (Leader) offline | Round table suspended; bots only respond to @ |
+| 1 seat vacant | Round table proceeds; decisions note the absence |
+| 2+ seats vacant | Downgrade to 2-person discussion mode; no formal decisions |
+| Bot returns after outage | Chairman sends it the missed meeting summary |
+
+> 🦐 **Design insight:** TG was chosen for simplicity (no custom protocol), but it means the swarm inherits TG's failure modes. Future versions may add a fallback channel (e.g., shared file + polling on Google Drive).
+
+---
+
+## 7. Known limitations (honest)
 
 - Not production: no auto-restart; if the heartbeat itself dies there's no watchdog-of-the-watchdog.
 - Parallel spawn cap ~3–5 (OpenClaw limit).
@@ -95,7 +136,7 @@ Dual confirmation (`LEARN_REQUIRE_DUAL_CONFIRM`) prevents a one-off hallucinatio
 
 ---
 
-## 7. Correspondence with the original frameworks (for maintainers)
+## 8. Correspondence with the original frameworks (for maintainers)
 
 | Original part | Where it went |
 |---|---|
