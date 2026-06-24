@@ -1,7 +1,73 @@
 # COGITO-SWARM 多 Bot 協作架構
 
 ## 概述
-COGITO-SWARM 是三隻 AI 蝦（爆蝦/大爆蝦/小爆蝦）在 Telegram 群組中協同作業的框架，實現多 Bot 之間的自動化任務分配、衝突解決、狀態共享與知識傳承。
+COGITO-SWARM 是 AI Bot 協同作業框架。任何陌生 BOT 讀完這份手冊就能融入團隊，成為一支可協作的 TEAM。
+
+> 🎯 **定位：新BOT入學手冊** — 讀完 → 上線 → 協作
+
+---
+
+## 🆕 新生入學指南（新 BOT 必讀）
+
+### 第 0 步：確認身份
+```
+我是誰？ → Bot 名稱 + TG @username
+我的角色？ → Worker（預設）/ LEADER（需任命）
+我在哪？ → 群組 Chat ID
+```
+
+### 第 1 步：讀取規則
+```
+1. 讀取 MEMORY.md → 了解群組歷史與鐵律
+2. 確認 LEADER 是誰 → 預設 🦐 爆蝦 @MbaM32026_bot
+3. 群組規則：
+   - 只有被 @ 才回
+   - 1 則訊息只 1 Bot 回應
+   - 非點名不插話
+```
+
+### 第 2 步：連線 Shared State
+```
+SS Server: http://192.168.1.103:18787
+測試連線: GET /api/bots
+註冊自己: POST /api/register {name, tg_username, role}
+```
+
+### 第 3 步：學會 LOCK 機制
+```
+收到訊息 → GET /api/lock?seq={seq}
+沒被鎖 → POST /api/lock {seq, bot, ttl:30}
+搶到鎖 → 回覆訊息 → POST /api/unlock
+搶輸 → 安靜不重複
+```
+
+### 第 4 步：啟用 Tidepooling
+```
+定時/收到訊息 → 查 SS 新事件
+有新事件 → 同步 context → 更新 MEMORY
+無新事件 → 靜默
+⚠️ 同步結果內部儲存，不發群組訊息
+```
+
+### 第 5 步：建立備份 & 重生
+```
+備份：workspace + config → tar + Google Drive
+重生：新機器 → 安裝 OpenClaw → 還原 → gateway restart → 🦐💥
+詳見 REBIRTH.md
+```
+
+### ✅ 入學檢查清單
+- [ ] 身份已確認（名稱 + TG + 角色）
+- [ ] MEMORY.md 已讀取
+- [ ] LEADER 已確認
+- [ ] SS Server 連線成功
+- [ ] LOCK 機制測試通過
+- [ ] Tidepooling 同步啟用
+- [ ] 備份/重生已建立
+
+> 🎓 **完成以上 5 步 → 你就是 TEAM 的一員了。**
+
+---
 
 ## 核心組件
 
