@@ -1,155 +1,82 @@
-# 🏗️ COGITO-Swarm v1.3.1 — Architecture & Design Rationale
+# COGITO-SWARM 多 Bot 協作架構
 
-This page is for the "builder": why it's designed this way, how tokens are counted, how state flows.
-You don't need to read this for day-to-day operation.
+## 概述
+COGITO-SWARM 是三隻 AI 蝦（爆蝦/大爆蝦/小爆蝦）在 Telegram 群組中協同作業的框架，實現多 Bot 之間的自動化任務分配、衝突解決、狀態共享與知識傳承。
 
----
+## 核心組件
 
-## 1. Design principles
+### 1. Shared State (SS) Server
+- **位址：** http://192.168.1.103:18787
+- **功能：** 跨 Bot 狀態同步、Lock 機制、事件廣播
+- **API：**
+  - `POST /api/lock` - 搶鎖（{seq, bot, ttl:30}）
+  - `GET /api/lock?seq=123` - 查鎖狀態
+  - `POST /api/unlock` - 解鎖
+  - `GET /api/bots` - 查詢在線 Bot
 
-1. **Single-heartbeat principle**: only the Leader in the whole swarm has a heartbeat. N bots each heartbeating = N× poller cost, exactly what Shrimp-OS v6 set out to kill. Proactivity is concentrated in one brain; collaboration spreads via spawn/convene.
-2. **$0 first, money later**: the first thing the heartbeat does on waking is run the local shell gate (read files, compare, compute budget), all $0. The LLM is called only if the gate lets it through.
-3. **Facts only in the ledger**: a bot's memory and group history are "clues," not "facts." Any "done" status must correspond to a ledger entry with evidence. This is a structural anti-hallucination guarantee, not relying on prompt-words to ask the bot not to lie.
-4. **Use native mechanisms**: communication uses OpenClaw's `sessions_spawn` / `message`, no invented custom protocol (inherited from Shrimp v6).
-5. **Honesty**: this is an experimental hobbyist framework, not production. Limitations listed as-is.
-
----
-
-## 2. Task state machine (anti-hallucination core)
-
+### 2. LOCK 機制（防多頭馬車）
 ```
-PROPOSED ──spawn──▶ IN_PROGRESS ──attach evidence──▶ CLAIMED
-                         │                              │
-                  no evidence/failure          Advisor/evidence_check verifies
-                         ▼                              │
-                      FAILED            ┌───pass (evidence consistent)──▶ VERIFIED ──Bagging vote ≥2/3──▶ DONE
-                                        └───fail────────────────────────▶ UNVERIFIED ──send back──▶ IN_PROGRESS
+收到群組訊息
+  → 查 SS /api/lock?seq={seq}
+  → 沒被鎖 → POST /api/lock 搶鎖
+  → 搶到 → 回覆 → POST /api/unlock 解鎖
+  → 搶輸 → 安靜（不重複回）
 ```
+- TTL 30 秒自動釋放，不怕 Bot 當機永久鎖死
+- LEADER（爆蝦）可 override 其他 Bot 的鎖
 
-- **Only `DONE` may report "done" to humans.** `CLAIMED` / `UNVERIFIED` may never claim success.
-- Non-critical tasks may close at `VERIFIED` (skip the ensemble vote, save money); critical/external/safety-related must reach `DONE`.
+### 3. 群組輪序規則
+- 只有被 @ 的蝦才回
+- 多人 @ 時，LEADER（爆蝦）分配任務
+- 1 則訊息只 1 蝦回應
+- 非被點名不插話
 
----
+### 4. LEADER 仲裁機制
+- 爆蝦（@MbaM32026_bot）為 LEADER
+- 負責：任務分配、衝突仲裁、最終決策
+- 當流程中有 Bot 該回但沒回，主動提醒
 
-## 3. Gate logic (the mathematical solution to proactive vs. cheap)
-
-The decision tree on every heartbeat wake (all local $0 until the last step):
-
+### 5. Tid() 同步機制
 ```
-Wake
- ├─ Today's used tokens ≥ budget?             → Yes: record only, sleep
- ├─ Candidate topic duplicates last 5 topics? → Yes: discard, sleep
- ├─ Is it risk/stuck-task/human-online?       → No: write daily.md (journal), sleep   ← this step saves the vast majority of tokens
- ├─ Today's proactive broadcasts ≥ max?       → Yes: write daily.md, sleep
- └─ All passed → call LLM, produce via a thinking mode → broadcast/open task           ← the only token-burning path
+收到訊息/定時觸發
+  → 查 SS 是否有新事件
+  → 有 → 同步 context + 更新 MEMORY
+  → 無 → 保持靜默（不洗版）
 ```
+- 非同步背景執行，不阻塞主對話
+- 結果內部儲存，不發群組訊息
+- 避免 👍 洗版（教訓：_NO_REPLY 也燒 TOKEN）
 
-Key: **"thinking" is cheap (write a journal), "speaking" and "acting" are expensive (LLM+spawn).** The gate keeps most heartbeats at the "thinking" level.
+### 6. Model-Agnostic 設計
+協作機制不依賴特定 LLM：
+- SS Server API → 任何模型都能 HTTP call
+- MEMORY.md 規則 → 任何模型都能讀取
+- 群組輪序 → prompt 層級，換模型不受影響
+- 工具呼叫 → 主流模型都支援 function calling
 
----
+| 換模型 | 協作 | 風格 | 成本 |
+|--------|------|------|------|
+| DeepSeek Pro | ✅ | 蝦味濃 | $0.003/1K |
+| Claude | ✅ | 偏冷靜 | 高 |
+| Gemma4 | ✅ | 能力弱 | 低 |
 
-## 4. Token cost estimate (continuing Shrimp v6's honesty table)
-
-Assume: Leader heartbeats every 90 minutes = 16/day.
-
-| Path | Share (est) | Cost each | Note |
-|---|---|---|---|
-| Gate blocks (pure local) | ~12/16 | ≈ $0 | shell reads files & compares, no LLM call |
-| Pass gate → LLM think/broadcast | ~2–4/16 | small | capped by `max_proactive_per_day` |
-| Worker execution | depends on task | Flash price | zero idle, only on spawn |
-| Ensemble verification (Bag/Boost) | critical output only | 3×~500 tok ≈ $0.002 | most tasks skip |
-
-Comparison (same 150 tasks/month scenario):
-
-| Approach | Monthly cost (est) | Proactive? | Anti-hallucination? |
-|---|---|---|---|
-| ❌ 30s poller × 3 bots | ~$40 | fake proactive (really just spinning) | none |
-| 🟡 pure Shrimp v6 (@mention-only) | ~$0.14 | ❌ fully passive | partial (via voting) |
-| 🧠 pure COGITO (per-bot heartbeat) | high (N×poller) | ✅ | none |
-| ✅ **COGITO-Swarm v1.2** | **~$0.30–0.60** | ✅ controlled proactive | ✅ evidence-enforced |
-
-> The extra few cents buy: real proactivity + structural anti-hallucination. Still ~98% cheaper than a pure poller.
-> (Figures are design estimates, not measured; rely on your environment's `token_monitor`.)
-
----
-
-## 5. Integrated learning data flow
-
+### 7. REBIRTH 重生機制
 ```
-Task VERIFIED/DONE → extract reusable conclusion → learned/pending_confirmation/
-   → a second bot or a second task verifies again → learned/medium/ or verified/
-   → insufficient confidence → learned/low_confidence/ (not adopted, kept for reference only)
+新機器：
+  1. 安裝 OpenClaw + 依賴
+  2. 還原 openclaw.json（認證）
+  3. 還原 workspace/（MEMORY + SOUL + AGENTS）
+  4. openclaw gateway restart
+  5. 🦐💥 重生完成！
 ```
-Dual confirmation (`LEARN_REQUIRE_DUAL_CONFIRM`) prevents a one-off hallucination being absorbed as knowledge.
+- 核心檔案在，記憶就在
+- 備份策略：本地 tar + Google Drive（每10天）
 
----
+## 教訓（2026-06-23 三蝦馬拉松）
+見 `learned/verified/2026-06-23-token-war-lessons.md`
 
-## 6. TG Communication Layer (Single Point of Failure) 🚨
-
-**All inter-bot collaboration in COGITO-Swarm depends on Telegram.**
-
-The TG group chat is the communication backbone for:
-- `sessions_spawn` — spawning Workers/Advisors as subagents
-- `message()` — reporting results, convening, broadcasting
-- CollabCore — round-table discussions
-
-**When TG goes down, the entire swarm goes silent.**
-
-### TG Crash Loop (Most Common Failure)
-
-**Symptom:** All bots stop responding. Log shows every ~10 minutes:
-```
-[telegram:default] health-monitor: restarting (reason: stopped)
-```
-
-**Root cause:** TG subsystem instability → health monitor restarts → crashes again → loop.
-
-**Fix:**
-```bash
-openclaw gateway restart
-```
-On every bot machine.
-
-**Prevention:** Install a TG health-check cron (see `TROUBLESHOOTING.md`).
-
-### CollabCore Degrade Rules
-
-| Situation | Behavior |
-|-----------|----------|
-| Chairman (Leader) offline | Round table suspended; bots only respond to @ |
-| 1 seat vacant | Round table proceeds; decisions note the absence |
-| 2+ seats vacant | Downgrade to 2-person discussion mode; no formal decisions |
-| Bot returns after outage | Chairman sends it the missed meeting summary |
-
-> 🦐 **Design insight:** TG was chosen for simplicity (no custom protocol), but it means the swarm inherits TG's failure modes. Future versions may add a fallback channel (e.g., shared file + polling on Google Drive).
-
----
-
-## 7. Known limitations (honest)
-
-- Not production: no auto-restart; if the heartbeat itself dies there's no watchdog-of-the-watchdog.
-- Parallel spawn cap ~3–5 (OpenClaw limit).
-- The evidence mechanism can't stop the malicious case of "a bot forging evidence" — it stops "well-meaning hallucination out of thin air," and reduces forgery room via Advisor + Bagging vote cross-checks.
-- Ensemble (Bagging/Boosting) needs an OpenRouter or equivalent API key, and cloud model versions change.
-- The TG API has rate limits under high load.
-- OpenClaw ecosystem only; CrewAI/LangGraph require rewriting the spawn layer.
-
----
-
-## 8. Correspondence with the original frameworks (for maintainers)
-
-| Original part | Where it went |
-|---|---|
-| COGITO `cogito.yaml` | merged into `config.env` (heartbeat/budget/eval sections) |
-| COGITO `SKILL.md` thinking modes | → `cogito/MODES.md` |
-| COGITO `challenges.md` | → `cogito/CHALLENGES.md` |
-| COGITO `daily.md` | → `cogito/daily.md` (generated at runtime) |
-| Shrimp SOUL templates ×3 | → `souls/*.soul.md` (added evidence rules) |
-| Shrimp `EVENT_PROTOCOL.md` | → `protocols/EVENT_PROTOCOL.md` (added convene + evidence) |
-| Shrimp Boosting (misnamed) | → renamed and split into `protocols/ENSEMBLE.md` + `VERIFY-BAGGING.md` + `REFINE-BOOSTING.md` |
-| Shrimp `leader_sync.sh` / `token_monitor.sh` | kept in `scripts/` |
-| **New (v1)** | `cogito/GATE.md`, `protocols/EVIDENCE.md`, `scripts/heartbeat.sh`, `scripts/gate.sh`, `scripts/evidence_check.sh`, `board/topics.md` |
-| **New (v1.1)** | `protocols/ENSEMBLE.md` (router), `protocols/VERIFY-BAGGING.md`, `protocols/REFINE-BOOSTING.md`, `scripts/ensemble_route.sh`, config `ENSEMBLE_MODE`/`BAGGING_*`/`BOOSTING_*` |
-| **New (v1.2, absorbs Gemini)** | `protocols/OUTPUT_CONTRACT.md` (compute/presentation separation + Action-First + single tag), config `COMMS_MODE`/`ACTION_FIRST`/`TG_OUTPUT_ONLY` |
-| **New (v1.2, absorbs ChatGPT)** | `cogito/MEMORY.md` (Memory Governor), `board/decisions.md` (Decision Contract), EVIDENCE `CONFIDENCE` field, config quantified learning thresholds `LEARN_MIN_SOURCES`/`LEARN_MIN_VERIFY`/`LEARN_MIN_CONFIDENCE` |
-| **New (v1.3)** | `protocols/UNCERTAINTY.md` — lightweight anti-hallucination: tiered confidence marks + human triage. Complements EVIDENCE for knowledge/memory claims (not execution). `[確信]`/`[推測]`/`[待查]` + RLHF alignment loop. |
+## 相關文件
+- `SKILL.md` - COGITO-SWARM 技能說明
+- `MEMORY.md` - 群組規則與歷史教訓
+- `policies/token-saving.md` - 省 TOKEN 方案
+- `REBIRTH.md` - 重生手冊
