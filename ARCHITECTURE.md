@@ -1,9 +1,15 @@
 # COGITO-SWARM 多 Bot 協作架構
 
 ## 概述
-COGITO-SWARM 是 AI Bot 協同作業框架。任何陌生 BOT 讀完這份手冊就能融入團隊，成為一支可協作的 TEAM。
 
-> 🎯 **定位：新BOT入學手冊** — 讀完 → 上線 → 協作
+> **COGITO-SWARM 就是新 BOT 入學手冊。**
+> BOT 讀了它，就可以共同協作。
+> 不管是多少支陌生的 BOT，讀完就是一個 TEAM。
+> 要有一支 LEADER，隊長。
+>
+> — 蝦老大，2026-06-24
+
+COGITO-SWARM 是 AI Bot 協同作業框架，以 Shared State + LOCK + Tidepooling + 輪序規則實現多 Bot 自動協作。
 
 ---
 
