@@ -1,7 +1,9 @@
-# 🦐🧠 COGITO-Swarm v1.3.1
+# 🦐🧠 COGITO-Swarm v1.4
 
 **A multi-bot system that thinks proactively, collaborates cheaply, and isn't allowed to lie.**
 Integrated from COGITO v4 (proactive thinking) + Shrimp-OS v6 (multi-bot collaboration).
+
+**🌍 Now scaling globally:** World-Class SS Server on Google Firebase/GCP, led by 🦀 XiaoBaoXia.
 
 > ⚠️ **Experimental tool, provided AS IS, use at your own risk.** It autonomously executes real actions, incurs costs, and sends data to third-party cloud models. Read [`DISCLAIMER.md`](DISCLAIMER.md) and [`COMPLIANCE.md`](COMPLIANCE.md) before use. **Not for high-risk use cases.**
 
@@ -37,6 +39,7 @@ cogito/             ← Proactive thinking layer
 protocols/          ← Collaboration & anti-hallucination
   EVENT_PROTOCOL.md  EVIDENCE.md  OUTPUT_CONTRACT.md
   ENSEMBLE.md  VERIFY-BAGGING.md  REFINE-BOOSTING.md
+  WORLD_SS_SERVER.md  WORLD_SS_SAFETY.md  WORLD_SS_DISCLAIMER.md  ← World-Class SS (NEW)
 board/              ← Shared state (collaboration channel + external memory; TG only receives final broadcasts)
   leader.status  topics.md  decisions.md
 scripts/            ← $0 local tools
@@ -82,6 +85,8 @@ openclaw gateway restart
 - Concept & software: Eric Su
 - Architecture: BaoXia (MbaM3-2026)
 - Advisor: XiaoHe (Win10AI_bot)
+- World-Class SS Architecture & Firebase Design: BaoXia (2026-06-26)
+- World-Class SS Project Lead: 🦀 XiaoBaoXia (MacMini2012)
 - Integration (v1): COGITO v4 × Shrimp-OS v6
 - v1.2 integrated review: Gemini (compute/presentation separation, Action-First), ChatGPT (Decision Contract, Memory Governor, quantified learning thresholds)
 - Ensemble reviewers (Bagging): GPT-4.1 / Claude Sonnet 4 / Gemini 3 Pro

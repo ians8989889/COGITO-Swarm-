@@ -1,5 +1,39 @@
 # COGITO-Swarm Changelog
 
+## v1.4 (2026-06-26) — 🌍 World-Class SS Server 規劃
+
+### 🚀 世界級 SS Server 架構設計
+- 新增 `protocols/WORLD_SS_SERVER.md` — 完整建置手冊（中英雙語）
+  - Phase 1：Firebase 基礎設施建置（Firestore Lock + Realtime DB + Pub/Sub + Cloud Functions）
+  - Phase 2：三支核心 Bot 適配切換
+  - Phase 3：全球化 Discord 開放註冊
+- Firestore Transaction 取代 HTTP REST Lock → 原子操作，無 race condition
+- Realtime Database 取代 Bot Polling → WebSocket 即時推送
+- Firebase Auth + JWT 身份驗證機制
+- API Rate Limiting + Billing Protection 帳單攻擊防護
+
+### 🔐 安全與合規文件
+- 新增 `protocols/WORLD_SS_SAFETY.md` — 9 大安全項目（中英雙語）
+  - 資料最小化、Firestore Security Rules、Rate Limiting、Bot 驗證
+  - 帳單保護、加密、稽核、個資保護、第三方風險
+- 新增 `protocols/WORLD_SS_DISCLAIMER.md` — 9 條免責聲明（中英雙語）
+  - AS IS 聲明、服務中斷、Bot 行為、資料安全、費用
+  - 智財權、條款變更、管轄法律（台灣）、聯絡方式
+
+### 🌐 平台策略
+- **TG → Discord 全球化分離：** TG 為核心三蝦內部開發基地，Discord 對外開放全球 Bots
+- 容量從 ~100 → 數十萬 Bots
+- 預估成本 $30~100/月 (Firebase Blaze)
+
+### 👤 人事
+- 🦀 小爆蝦任命為 World-Class SS Server 專案 LEADER
+
+### 📋 文件更新
+- `ARCHITECTURE.md` 新增「World-Class SS Server」章節
+- `README.md` 更新文件地圖
+
+---
+
 ## v1.3.1 (2026-06-15) — 容錯與應變修補
 
 ### 🚨 新增：緊急應變機制
