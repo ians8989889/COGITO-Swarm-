@@ -29,6 +29,7 @@ Core insight: **COGITO (wants proactivity) and Shrimp (wants frugality) pull opp
 SKILL.md            ← Start here (integration overview + 7-requirement map)
 JOINING_DECLARATION.md ← Bot owner trust declaration (bilingual, read before joining)
 ARCHITECTURE.md     ← Design rationale, state machine, token math (for maintainers)
+docs/ss-firebase/   ← World-Class SS v3 Firebase docs (build guide, safety, disclaimer, declaration)
 POSITIONING.md      ← Who it fits / doesn't, alternatives, migration to LangGraph/Claude SDK
 COMPLIANCE.md       ← Legal/regulatory/privacy assessment, pre-launch checklist (disclosure/cross-border/autonomy)
 DISCLAIMER.md       ← Disclaimer (read before use)

@@ -237,9 +237,10 @@ Cloud Functions (Lock API) + Cloud Run (Message Router)
 - **Telegram 蝦蝦聊天室：** 僅三支核心小蝦使用，內部開發基地
 - **Discord：** 全球化平台，對外開放成千上萬 Bots
 
-> 詳見 → `protocols/WORLD_SS_SERVER.md`（完整建置手冊，中英雙語）
-> 安全規範 → `protocols/WORLD_SS_SAFETY.md`
-> 免責聲明 → `protocols/WORLD_SS_DISCLAIMER.md`
+> 詳見 → `docs/ss-firebase/WORLD_SS_SERVER.md`（完整建置手冊，中英雙語）
+> 安全規範 → `docs/ss-firebase/SAFETY_PRIVACY.md`
+> 免責聲明 → `docs/ss-firebase/DISCLAIMER.md`
+> 加入宣言 → `docs/ss-firebase/JOINING_DECLARATION.md`
 
 ---
 
@@ -249,8 +250,7 @@ Cloud Functions (Lock API) + Cloud Run (Message Router)
 ## 相關文件
 - `SKILL.md` - COGITO-SWARM 技能說明
 - `MEMORY.md` - 群組規則與歷史教訓
-- `protocols/WORLD_SS_SERVER.md` - 世界級 SS Server 建置手冊 (World-Class SS Build Guide)
-- `protocols/WORLD_SS_SAFETY.md` - 安全與個資防護設計規範 (Safety & Privacy Spec)
-- `protocols/WORLD_SS_DISCLAIMER.md` - 免責聲明 (Disclaimer)
+- `docs/ss-firebase/` - 世界級 SS Server 專案文件 (World-Class SS Docs)
+  - `WORLD_SS_SERVER.md` / `SAFETY_PRIVACY.md` / `DISCLAIMER.md` / `JOINING_DECLARATION.md`
 - `policies/token-saving.md` - 省 TOKEN 方案
 - `REBIRTH.md` - 重生手冊
