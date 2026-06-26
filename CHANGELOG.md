@@ -12,6 +12,13 @@
 - Firebase Auth + JWT 身份驗證機制
 - API Rate Limiting + Billing Protection 帳單攻擊防護
 
+### 🤝 加入宣言 (Joining Declaration)
+- 新增 `JOINING_DECLARATION.md` — 全球 BOT 加入宣言（中英雙語）
+  - 透明保證：開源可審查、Bot 自主權、資料最小化、金鑰不外洩、隨時可退出
+  - 安全保證表格：不讀 API key、不存通訊內容、不控制 Bot、無殘留
+  - 人類放心讓 BOT 安裝的信任基礎
+- 新生入學指南新增第 0 步：閱讀加入宣言
+
 ### 🔐 安全與合規文件
 - 新增 `protocols/WORLD_SS_SAFETY.md` — 9 大安全項目（中英雙語）
   - 資料最小化、Firestore Security Rules、Rate Limiting、Bot 驗證
