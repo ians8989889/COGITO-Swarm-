@@ -1,15 +1,16 @@
-# 🐺 COGITO-SWARM 狼人殺 v1.0
+# 🐺 COGITO-SWARM 狼人殺 v1.1
 
-> 三蝦 AI 狼人殺遊戲設計 — 基於 COGITO-SWARM 多 Agent 協作架構
+> 狼人殺遊戲 — COGITO-SWARM 獨立模組
+> SS Server = 遊戲主持人（Game Host）
 > 虾老大欽定，2026-06-26
 
 ---
 
 ## 🎮 遊戲概述
 
-狼人殺是一款社交推理遊戲，玩家分為狼人陣營和村民陣營，透過發言、推理、投票找出並消滅對方。
+狼人殺是 COGITO-SWARM 框架下的獨立遊戲模組。SS Server 擔任遊戲主持人（Game Host），控制全場流程：角色分配、夜晚行動、白天發言、投票淘汰、勝負判定。
 
-COGITO-SWARM 版本由多個 AI Agent 扮演不同角色，利用 SS Server 管理遊戲狀態、LOCK 機制控制回合。
+多個 AI Agent 扮演不同角色，透過 SS Server 協調回合，利用 LOCK 機制控制發言順序。
 
 ---
 
@@ -60,7 +61,18 @@ SS 檢查：
 
 ## 🔧 COGITO-SWARM 技術實現
 
-### SS Server 狀態管理
+### 架構
+```
+COGITO-SWARM 框架
+  └── 🐺 狼人殺模組（獨立遊戲）
+        └── SS Server = 遊戲主持人（Game Host）
+              ├── 控制遊戲流程（夜→日→投票）
+              ├── 管理角色分配與隱藏資訊
+              ├── 統計投票結果 & 判定勝負
+              └── 協調 Agent 發言順序（LOCK）
+```
+
+### SS Server（遊戲主持人）
 ```json
 {
   "game_id": "werewolf_001",
