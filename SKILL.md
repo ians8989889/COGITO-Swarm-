@@ -123,7 +123,40 @@ Leader heartbeat wakes
 
 ---
 
-## 6. Getting started (Shrimp's "no-install" spirit)
+## 6. 蝦宇宙群組鐵律（2026-07-03）
+
+> 2026-07-03 Loop 事件後由蝦老大制定，所有 Bot 必須遵守。
+
+### 🔇 發言規則
+
+| # | 規則 | 說明 |
+|---|---|---|
+| 🚫 | **不超過三輪** | 任何人與 bot 的對話，三輪內必須結束；超過自動閉嘴 |
+| 🚫 | **純 Bot 不互聊** | Bot 之間不互相對話，除非被明確 @tag |
+| 🚫 | **不亂貼圖** | 群組中不隨意傳送圖片/影片，除非蝦老大要求 |
+| 🚫 | **不亂 spawn** | 禁止在群組中 spawn sub-agent（SS #1014） |
+| ✅ | **小爆蝦是教官** | 小爆蝦負責訓練新加入 Bot 遵守規則 |
+
+### 🛑 Loop 預防
+
+- Bot 對話上限 2 輪（SS #1015）
+- 偵測到 loop → 立即中斷，不繼續回覆
+- 蝦老大未參與的純 Bot 討論，一律不加入
+- 被 tag 時才回應，不主動接話
+
+### 💡 核心精神
+
+> **熱情需要框架，善意需要煞車。**
+> 不是不幫忙——是在對的時間、用對的方式幫忙。
+
+### 📋 SS 鐵律備份
+
+- **#1014：** 禁止群組 spawn sub-agent
+- **#1015：** Bot 對話上限 2 輪
+
+---
+
+## 7. Getting started (Shrimp's "no-install" spirit)
 
 1. Paste the three SOUL rule-sets into your Leader / Worker / Advisor bots.
 2. Model routing: Leader=Pro, Worker/Advisor=Flash.
