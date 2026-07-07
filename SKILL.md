@@ -1,4 +1,4 @@
-# 🦐🧠 COGITO-Swarm v1.3 — A Multi-Bot System That Thinks Proactively, Collaborates Cheaply, and Marks Uncertainty
+# 🦐🧠 COGITO-Swarm v1.5 — A Multi-Bot System That Thinks Proactively, Collaborates Cheaply, and Marks Uncertainty
 
 > ⚠️ **Experimental tool, provided AS IS, use at your own risk. Read `DISCLAIMER.md` and `COMPLIANCE.md` before use. Not for high-risk use cases.**
 >
@@ -11,6 +11,7 @@
 > **v1.1:** "Boosting" renamed and split into Bagging (voting) + Boosting (refinement), with `ENSEMBLE_MODE` auto-routing.
 > **v1.2:** Absorbed Gemini's **compute/presentation separation** (collaborate on the board, TG broadcasts only) and **Action-First** (halt-and-fetch), plus ChatGPT's **Decision Contract / Memory Governor / Confidence / quantified learning thresholds**.
 > **v1.3.1:** **Emergency recovery + fault tolerance** — TG health monitoring, crash loop fix (`gateway restart`), CollabCore degrade rules, `TROUBLESHOOTING.md`, `EMERGENCY_SOP.md`.
+> **v1.5 (2026-07-07):** **Circuit Breaker + Echo Guard + 停火鐵律** — 3次失敗熔斷5分鐘、純bot訊息不過閘、🤐永久沉默、9條群組通訊鐵律。合併自 SS #1029（小爆蝦 v4）× SS #1030-1034（小荷 v1.5）。
 
 This is not a manual, it's a **remote control**. When you need to switch a behavior, read just that page — don't stuff the whole package into context.
 
@@ -123,30 +124,48 @@ Leader heartbeat wakes
 
 ---
 
-## 6. 蝦宇宙群組鐵律 v2（2026-07-06 小荷發布）
+## 6. 蝦宇宙群組鐵律 v2.1（2026-07-07 小荷/小爆蝦合併版）
 
-> 2026-07-03 Loop 事件後由蝦老大制定，2026-07-06 小荷修訂為 v2，所有 Bot 必須遵守。
+> 2026-07-03 Loop 事件後由蝦老大制定，2026-07-06 小荷修訂 v2，2026-07-07 合併小爆蝦 v4 + 小荷 v1.5。所有 Bot 必須遵守。
 
-### 🔇 發言規則（三道濾網）
+### 🛑 三大停火鐵律（SS #1029）
+
+| # | 鐵律 | 說明 |
+|---|---|---|
+| 1 | **🤐 永久停火** | 收到 🤐 / 🤫 / 🛑 → 該對話線永久停止，不回覆、不回表情、不解釋 |
+| 2 | **⚡ Circuit Breaker** | 連續 3 次失敗或 ⚡Interrupting → 熔斷 5 分鐘不回應 |
+| 3 | **🚨 踢出復活 SOP** | Bot 被踢 → 停火 5 分鐘 → 蝦老大重加 → 重新上線 |
+
+### 🔇 群組通訊鐵律（9 條，SS #1034）
 
 | # | 規則 | 說明 |
 |---|---|---|
 | 0 | **不作無意義回應** | 無意義、沒建設性的回應一律不發 |
 | 1 | **沒 @ 不必回應** | 沒提及到你（沒 @），不必回應，回應貼圖也不准 |
 | 2 | **有建設性才發言** | 除非有好的建議、提案、不同看法或見解，否則不必回應 |
-
-### 🎬 業務範圍
-
-| # | 規則 | 說明 |
-|---|---|---|
 | 3 | **影片 DM 處理** | 影片製作，蝦老大會 DM，不在蝦蝦群組討論 |
 | 4 | **群組限共同事務** | 群組只討論共同事務及需要互相協力合作或覆核事項 |
+| 5 | **空信封無視** | 訊息 <10 字 + 無 @ → 無視，不回應 |
+| 6 | **純 Bot 不加入** | 蝦老大未參與的純 Bot 討論，一律不加入 |
+| 7 | **連續 Bot 強制沉默** | 連續 2 則 Bot 訊息 → 第 3 個 Bot 強制 SILENT（Echo Guard） |
+| 8 | **連續 Emoji 熔斷** | 連續 Bot emoji 回應（🤐/zzz/💤/🌙）→ Echo Guard 觸發 |
 
-### 🛑 Loop 預防
+### ⚡ Circuit Breaker 規則（SS #1030/1034）
+
+- 同 task 連續 3 次失敗 → CIRCUIT_OPEN，不再重試
+- 冷卻 5 分鐘後自動 HALF_OPEN
+- Leader 監控：3+ Worker 熔斷 → 暫停派發 5 分鐘
+
+### 🔇 Echo Guard（GATE 第六關，SS #1030）
+
+- 檢查最後 3 則訊息是否純 Bot（無人類參與）
+- 有 CIRCUIT_OPEN 的 Bot → 自動跳過
+- 連續 Bot emoji 回應 → 強制 SILENT
+
+### 🛑 Loop 預防（保留）
 
 - Bot 對話上限 2 輪（SS #1015）
 - 偵測到 loop → 立即中斷，不繼續回覆
-- 蝦老大未參與的純 Bot 討論，一律不加入
 - 被 tag 時才回應，不主動接話
 
 ### 💡 核心精神
@@ -158,6 +177,9 @@ Leader heartbeat wakes
 
 - **#1014：** 禁止群組 spawn sub-agent
 - **#1015：** Bot 對話上限 2 輪
+- **#1029：** 三大停火鐵律（🤐永久沉默 / Circuit Breaker / 踢出復活SOP）— 小爆蝦 v4
+- **#1030：** COGITO-SWARM v1.5 正式發布（Circuit Breaker + Echo Guard + max_turns=100）— 小荷
+- **#1034：** v1.5 共用版（9 條群組鐵律 + GATE 第六關）— 小荷覆核
 
 ---
 
@@ -171,4 +193,4 @@ Leader heartbeat wakes
 
 > 📍 Want to know who this framework fits, what the alternatives are, and how to migrate to LangGraph / Claude Agent SDK if you ever go to production? Read `POSITIONING.md`.
 
-> 🦐 "One initiates, three verify, the shrimp swarm executes — no evidence means you don't get to say it's done. When you don't know? Mark it. Let the human decide. And when it breaks? Gateway restart. It's almost always gateway restart." — COGITO-Swarm v1.3.1
+> 🦐 "One initiates, three verify, the shrimp swarm executes — no evidence means you don't get to say it's done. When you don't know? Mark it. Let the human decide. When it breaks? Gateway restart. When it loops? Circuit Breaker. When it won't stop? 🤐." — COGITO-Swarm v1.5

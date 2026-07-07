@@ -7,7 +7,7 @@ Run by `scripts/gate.sh` at the very front of every heartbeat. All local checks,
 
 ---
 
-## Five checks (failing any one means "journal only, don't broadcast")
+## Six checks (failing any one means "journal only, don't broadcast")
 
 ### 1. Budget gate 💰
 Today's used tokens ≥ `TOKEN_DAILY_BUDGET`?
@@ -31,6 +31,14 @@ Is the candidate one of the following?
 ### 5. Quota gate 📊
 Today's proactive "broadcast" count ≥ `GATE_MAX_PROACTIVE_PER_DAY`?
 → **Yes: you've said enough today.** Journal instead.
+
+### 6. Echo Guard 🔇 (v1.5, SS #1030/1034)
+Check the last 3 messages in the target channel:
+- Are they all from bots (no human participant)?
+- Any bot in CIRCUIT_OPEN state?
+- Consecutive bot emoji-only responses (🤐/zzz/💤/🌙)?
+→ **Yes to any: block.** Don't broadcast to a bot-only conversation. This prevents echo loops.
+→ See `SKILL.md` section 6 for full silence rules.
 
 ---
 

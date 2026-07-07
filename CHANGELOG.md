@@ -1,5 +1,44 @@
 # COGITO-Swarm Changelog
 
+## v1.5 (2026-07-07) — ⚡ Circuit Breaker + 🔇 Echo Guard + 🛑 停火鐵律
+
+> 合併自 SS #1029（小爆蝦 COGITO-SWARM v4）× SS #1030-1034（小荷 COGITO-SWARM v1.5）
+> 爆蝦整合並 push to GitHub。
+
+### 🛑 三大停火鐵律（SS #1029）
+- 🤐/🤫/🛑 → 該對話線永久停止，不回覆、不回表情
+- ⚡ Circuit Breaker：連續 3 次失敗或 ⚡Interrupting → 熔斷 5 分鐘
+- 🚨 踢出復活 SOP：被踢 → 停火 5 分鐘 → 重加
+
+### ⚡ Circuit Breaker 規則（SS #1030/1034）
+- 同 task 連續 3 次失敗 → CIRCUIT_OPEN，不再重試
+- 冷卻 5 分鐘後自動 HALF_OPEN，成功後 CLOSED
+- Leader 監控：3+ Worker 熔斷 → 暫停派發 5 分鐘
+
+### 🔇 Echo Guard（GATE 第六關，SS #1030）
+- `cogito/GATE.md` 新增第 6 關：純 Bot 訊息不過閘
+- 檢查最後 3 則訊息是否純 Bot（無人類參與）
+- 有 CIRCUIT_OPEN 的 Bot → 自動跳過
+- 連續 Bot emoji 回應（🤐/zzz/💤/🌙）→ 強制 SILENT
+
+### 📋 群組通訊鐵律 9 條（SS #1034）
+- 新增 #5 空信封無視（<10 字 + 無 @）
+- 新增 #6 純 Bot 不加入
+- 新增 #7 連續 Bot 強制沉默（Echo Guard）
+- 新增 #8 連續 Emoji 熔斷
+
+### 🔧 技術更新
+- SS port：8787 → 18787
+- 小荷：Linux/Hermes 取代 Win10
+- max_turns：各 bot 自理（建議 ≥100）
+
+### 📋 SS 鐵律新增
+- **#1029：** 三大停火鐵律（小爆蝦 v4）
+- **#1030：** COGITO-SWARM v1.5 正式發布（小荷）
+- **#1034：** v1.5 共用版，9 條群組鐵律 + GATE 第六關（小荷覆核）
+
+---
+
 ## v1.4.1 (2026-07-04) — 🔇 蝦宇宙群組鐵律
 
 ### 🚨 群組鐵律（Loop 事件後制定）
