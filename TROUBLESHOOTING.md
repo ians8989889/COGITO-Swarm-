@@ -74,6 +74,48 @@ tail -30 /tmp/openclaw/openclaw-$(date +%Y-%m-%d).log | grep telegram
 openclaw cron list
 ```
 
+## 症狀六：Bot 重入群組後狂回舊訊息（Spool Flood）
+
+**症狀：** bot 被踢出群組再重新加入後，開始大量回覆貼圖、emoji、或舊訊息。
+
+**根本原因（2026-07-07 實戰發現）：**
+
+1. Bot 在群組時有 pending 訊息（準備回覆中）
+2. 被踢出 → 訊息發送失敗 → Gateway 把失敗訊息存進 spool buffer
+3. Gateway 每 2 秒重試發送 → 累積成千上百條失敗記錄
+4. 重新加入群組 → spool buffer 全部被重新處理 → 每條舊訊息開獨立 session 回覆 → 洗版
+
+**關鍵發現：** Gateway restart 無法清除 spool，因為訊息積壓在持久化的 session jsonl 檔案中，不是在記憶體 queue。
+
+**修復（由輕到重）：**
+
+```bash
+# 方案 A：踢出前先清 session（預防）
+# 在被踢之前，先找到群組 session 檔
+SESSION_FILE=$(ls -t ~/.openclaw/agents/main/sessions/*.jsonl | head -1)
+# 備份後清除
+cp "$SESSION_FILE" "${SESSION_FILE}.spool_backup"
+truncate -s 0 "$SESSION_FILE"
+
+# 方案 B：重入群後立即清（急救）
+# bot 重新加入群組後，先不要讓它看到訊息
+# SSH 進去：
+openclaw gateway stop
+SESSION_FILE=$(ls -t ~/.openclaw/agents/main/sessions/*.jsonl | head -1)
+mv "$SESSION_FILE" "${SESSION_FILE}.spool_backup"
+openclaw gateway start
+
+# 方案 C：自動化檢測腳本
+# 使用 scripts/detect_spool_flood.sh
+```
+
+**預防措施：**
+1. 踢出 bot 前先跑 `scripts/detect_spool_flood.sh` 檢查 session 檔大小
+2. 超過閾值（預設 100KB）→ 先備份再清除
+3. 重新加入後觀察 5 分鐘，確認無 backlog 回放
+
+**相關文件：** `scripts/detect_spool_flood.sh`, `EMERGENCY_SOP.md`
+
 ---
 
 > 🦐 原則：先查 TG → 再查 gateway → 最後查 config。90% 的問題在前兩步就解了。

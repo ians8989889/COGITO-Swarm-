@@ -32,7 +32,7 @@
 |------|------|------|---------|
 | 🟢 Level 0 | 單隻 bot 慢回（>2min） | 輕微延遲 | 有空再查 |
 | 🟡 Level 1 | 單隻 bot 不回應 | 部分功能失效 | 30 分鐘內 |
-| 🟠 Level 2 | 兩隻 bot 不回應 | 群組協同中斷 | 15 分鐘內 |
+| 🟠 Level 2 | 兩隻 bot 不回應 / Spool Flood | 群組協同中斷 / 洗版 | 15 分鐘內 |
 | 🔴 Level 3 | 三隻全掛 | 全系統停擺 | 立即處理 |
 
 ---
@@ -71,6 +71,7 @@ grep "health-monitor: restarting" /tmp/openclaw/openclaw-$(date +%Y-%m-%d).log |
 | 模型 API 掛了 | 自動切 fallback（已配置） |
 | 整機離線 | 檢查機器電源/網路 |
 | TG API 全域掛掉 | 等 Telegram 恢復，不需處理 |
+| Spool Flood（重入群後狂回舊訊息） | ① `openclaw gateway stop` ② `mv session.jsonl session.jsonl.spool_backup` ③ `openclaw gateway start` ④ 或跑 `scripts/detect_spool_flood.sh --auto-clean` |
 
 ### Step 4: 確認修復
 
