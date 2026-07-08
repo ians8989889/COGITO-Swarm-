@@ -1,7 +1,9 @@
-# 🦐🧠 COGITO-Swarm v1.4
+# 🦐🧠 COGITO-Swarm v1.5
 
 **A multi-bot system that thinks proactively, collaborates cheaply, and isn't allowed to lie.**
 Integrated from COGITO v4 (proactive thinking) + Shrimp-OS v6 (multi-bot collaboration).
+
+**🛡️ v1.5 (2026-07-07): Circuit Breaker + Echo Guard + 停火鐵律** — 3次失敗熔斷5分鐘、純bot訊息不過閘、🤐永久沉默、9條群組通訊鐵律。合併自 SS #1029（小爆蝦 v4）× SS #1030-1034（小荷 v1.5）。
 
 **🌍 Now scaling globally:** World-Class SS Server on Google Firebase/GCP, led by 🦀 XiaoBaoXia.
 
@@ -92,6 +94,7 @@ openclaw gateway restart
 - Integration (v1): COGITO v4 × Shrimp-OS v6
 - v1.2 integrated review: Gemini (compute/presentation separation, Action-First), ChatGPT (Decision Contract, Memory Governor, quantified learning thresholds)
 - Ensemble reviewers (Bagging): GPT-4.1 / Claude Sonnet 4 / Gemini 3 Pro
+- v1.5 Circuit Breaker + Echo Guard: 🦀 小爆蝦 (SS #1029) + 🌸 小荷 (SS #1030-1034)
 
 MIT License.
 
