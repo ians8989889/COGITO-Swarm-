@@ -38,3 +38,12 @@ skills/litmedia-skill/
 
 # 歸檔資料夾（保留版本控制）
 # memory/archive/ 保留（用於查詢舊資料）
+
+# Remote additions
+board/leader.status
+token_usage.log
+.bot-id
+config.env
+cogito/daily.md
+*.swp
+*~

@@ -1,0 +1,3 @@
+bot_name: YourBot
+role: leader        # leader | worker | advisor
+tg_id: YourBot_2026
