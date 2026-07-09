@@ -1,5 +1,48 @@
 # COGITO-Swarm Changelog
 
+## v4.1 (2026-07-09) — 🧭 Rule Router + 🎯 單一回覆 + 🔄 Per-Message重試
+
+> 蝦老大早會後改版。核心目標：降低 LLM 呼叫次數、統一各 Bot 路由邏輯、杜絕雜亂回覆。
+
+### 🧭 Rule Router — 9步統一優先級（核心變更）
+- 所有 Bot 收到訊息後遵循相同路由優先級，不再依賴 LLM 自行判斷
+- 路由判斷順序：@提及我 → 回覆我 → 指令 → /api/classify → Lock → 回/不回
+- 從「每則訊息 5 次 LLM 呼叫」降到「0~1 次分類 + 1 次 Agent 推理」
+
+### 🎯 第 10 條鐵律：同一訊息單一回覆原則
+- 一則訊息只有一個 Bot 回覆
+- Leader 優先 → 輪替順序 → 其餘 SILENT
+- 透過 /api/lock（通用鎖）確保原子性
+
+### 🔄 Per-Message 重試
+- 失敗重試 1 次 → 仍失敗則 silent + log
+- 計入 Circuit Breaker 失敗計數
+
+### 🏷️ Certainty 分級（實作指引）
+- high / medium / low 三級，程式端決定
+- 不依賴 LLM 自我評分
+
+### 🛡️ 結構外洩防護（實作指引）
+- 黑名單 + Schema 層杜絕
+- 防止 LLM 輸出不該出現的內部結構
+
+### 🔧 Tool/Function Calling（實作指引）
+- 優先使用原生 tool calling 取代裸 JSON
+- 減少 parse error、提高可靠性
+
+### 🔧 SS 端
+- `/api/classify` endpoint（Classifier 分類層）— 大爆蝦 ✅ 已就緒
+- `/api/lock` 升級為通用鎖（override + TTL + priority）— 大爆蝦
+
+### 📋 SS 鐵律新增
+- **第 10 條：** 同一訊息單一回覆原則（Leader 優先 → 輪替順序）
+
+### 💡 架構哲學
+> 從「依賴 LLM 判斷一切」到「規則先行、LLM 輔助」。
+> Router 決定誰回，Agent 決定回什麼。兩層分離，各自專注。
+
+---
+
 ## v1.5 (2026-07-07) — ⚡ Circuit Breaker + 🔇 Echo Guard + 🛑 停火鐵律
 
 > 合併自 SS #1029（小爆蝦 COGITO-SWARM v4）× SS #1030-1034（小荷 COGITO-SWARM v1.5）

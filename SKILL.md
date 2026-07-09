@@ -1,4 +1,4 @@
-# 🦐🧠 COGITO-Swarm v1.5 — A Multi-Bot System That Thinks Proactively, Collaborates Cheaply, and Marks Uncertainty
+# 🦐🧠 COGITO-Swarm v4.1 — Rule Router+Classifier+通用鎖+Schema驗證+Tool Calling
 
 > ⚠️ **Experimental tool, provided AS IS, use at your own risk. Read `DISCLAIMER.md` and `COMPLIANCE.md` before use. Not for high-risk use cases.**
 >
@@ -12,6 +12,7 @@
 > **v1.2:** Absorbed Gemini's **compute/presentation separation** (collaborate on the board, TG broadcasts only) and **Action-First** (halt-and-fetch), plus ChatGPT's **Decision Contract / Memory Governor / Confidence / quantified learning thresholds**.
 > **v1.3.1:** **Emergency recovery + fault tolerance** — TG health monitoring, crash loop fix (`gateway restart`), CollabCore degrade rules, `TROUBLESHOOTING.md`, `EMERGENCY_SOP.md`.
 > **v1.5 (2026-07-07):** **Circuit Breaker + Echo Guard + 停火鐵律** — 3次失敗熔斷5分鐘、純bot訊息不過閘、🤐永久沉默、9條群組通訊鐵律。合併自 SS #1029（小爆蝦 v4）× SS #1030-1034（小荷 v1.5）。
+> **v4.1 (2026-07-09):** **Rule Router + Classifier + 通用鎖 + Schema驗證 + Tool Calling** — 9步統一優先級路由、同一訊息唯一回覆、Per-Message重試、Certainty分級、結構外洩防護。Circuit Breaker+Echo Guard+停火鐵律+踢出復活SOP。
 
 This is not a manual, it's a **remote control**. When you need to switch a behavior, read just that page — don't stuff the whole package into context.
 
@@ -124,9 +125,9 @@ Leader heartbeat wakes
 
 ---
 
-## 6. 蝦宇宙群組鐵律 v2.2（2026-07-08 蝦老大補充第 10 條）
+## 6. 蝦宇宙群組鐵律 v4.1（2026-07-09 新增第 10 條：單一回覆原則）
 
-> 2026-07-03 Loop 事件後由蝦老大制定，2026-07-06 小荷修訂 v2，2026-07-07 合併小爆蝦 v4 + 小荷 v1.5，2026-07-08 蝦老大補充內部思考鐵律。所有 Bot 必須遵守。
+> 2026-07-03 Loop 事件後由蝦老大制定，2026-07-06 小荷修訂 v2，2026-07-07 合併小爆蝦 v4 + 小荷 v1.5，2026-07-08 蝦老大補充內部思考鐵律，2026-07-09 新增第 10 條：同一訊息單一回覆原則。所有 Bot 必須遵守。
 
 ### 🛑 三大停火鐵律（SS #1029）
 
@@ -150,6 +151,7 @@ Leader heartbeat wakes
 | 7 | **連續 Bot 強制沉默** | 連續 2 則 Bot 訊息 → 第 3 個 Bot 強制 SILENT（Echo Guard） |
 | 8 | **連續 Emoji 熔斷** | 連續 Bot emoji 回應（🤐/zzz/💤/🌙）→ Echo Guard 觸發 |
 | 9 | **🧠 內部思考不外洩** | 「為什麼不回應」是內部思考，不該出現在群組。該沉默就直接沉默，不解釋原因。 |
+| 10 | **🎯 同一訊息單一回覆** | 一則訊息只有一個 Bot 回覆。Leader 優先 → 輪替順序 → 其餘 SILENT。不再多頭馬車、重複回應。 |
 
 ### ⚡ Circuit Breaker 規則（SS #1030/1034）
 
@@ -181,10 +183,73 @@ Leader heartbeat wakes
 - **#1029：** 三大停火鐵律（🤐永久沉默 / Circuit Breaker / 踢出復活SOP）— 小爆蝦 v4
 - **#1030：** COGITO-SWARM v1.5 正式發布（Circuit Breaker + Echo Guard + max_turns=100）— 小荷
 - **#1034：** v1.5 共用版（9 條群組鐵律 + GATE 第六關）— 小荷覆核
+- **第 10 條：** 同一訊息單一回覆原則（Leader 優先 → 輪替順序）— 蝦老大 v4.1
 
 ---
 
-## 7. Getting started (Shrimp's "no-install" spirit)
+## 7. v4.1 核心變更：Rule Router + Classifier + 通用鎖
+
+### 🧭 Rule Router — 9步統一優先級
+
+所有 Bot 收到訊息後遵循相同路由優先級，不再依賴 LLM 自行判斷誰該回：
+
+| 步驟 | 條件 | 動作 |
+|---|---|---|
+| 1 | @提及我 | 直接命中 → 回應 |
+| 2 | 回覆我的訊息 | 直接命中 → 回應 |
+| 3 | 明確指令（/command） | 直接命中 → 回應 |
+| 4 | @多位 Bot | 由 /api/classify 決定誰回 |
+| 5 | 無 @ 的一般訊息 | /api/classify 判斷是否需要回 |
+| 6 | 純 Bot 訊息 | Echo Guard 過濾 |
+| 7 | 空信封（<10字+無@） | 無視 |
+| 8 | Circuit Breaker 觸發 | SILENT |
+| 9 | 已有其他 Bot 回覆 | SILENT（單一回覆原則） |
+
+> 💡 從「每則訊息 5 次 LLM 呼叫」降到「0~1 次分類 + 1 次 Agent 推理」。
+
+### 🎯 同一訊息單一回覆原則（第 10 條鐵律）
+
+- 一則訊息只有一個 Bot 回覆
+- Leader 優先 → 輪替順序 → 其餘 SILENT
+- 透過 /api/lock（通用鎖）確保原子性
+- 回完解鎖 + post_event 到 SS
+
+### 🔄 Per-Message 重試
+
+- 失敗重試 1 次 → 仍失敗則 silent + log
+- 計入 Circuit Breaker 失敗計數
+- 不無限重試、不塞爆 log
+
+### 🏷️ Certainty 分級（實作指引）
+
+由程式端決定，不依賴 LLM 自我評分：
+
+| 等級 | 條件 | 標記 |
+|---|---|---|
+| high | 有明確來源/證據 | ✅ 確信 |
+| medium | 推測但無直接證據 | ⚠️ 推測 |
+| low | 不確定/待查證 | ❓ 待查 |
+
+### 🛡️ 結構外洩防護（實作指引）
+
+- **黑名單機制：** 禁止 LLM 輸出 JSON schema、內部路由資訊、token/金鑰
+- **Schema 層杜絕：** 輸出前過濾敏感欄位
+- **防呆：** 即使 LLM 洩漏，輸出層也攔截
+
+### 🔧 Tool/Function Calling（實作指引）
+
+- 優先使用原生 tool calling 取代裸 JSON parsing
+- 減少 parse error、提高可靠性
+- 每個 tool 有明確 schema 定義
+
+### 🔧 SS 端待辦
+
+- `/api/classify` endpoint（Classifier 分類層）— 大爆蝦 ✅ 已就緒
+- `/api/lock` 升級為通用鎖（支援 override、TTL、priority）— 大爆蝦
+
+---
+
+## 8. Getting started (Shrimp's "no-install" spirit)
 
 1. Paste the three SOUL rule-sets into your Leader / Worker / Advisor bots.
 2. Model routing: Leader=Pro, Worker/Advisor=Flash.
@@ -194,4 +259,4 @@ Leader heartbeat wakes
 
 > 📍 Want to know who this framework fits, what the alternatives are, and how to migrate to LangGraph / Claude Agent SDK if you ever go to production? Read `POSITIONING.md`.
 
-> 🦐 "One initiates, three verify, the shrimp swarm executes — no evidence means you don't get to say it's done. When you don't know? Mark it. Let the human decide. When it breaks? Gateway restart. When it loops? Circuit Breaker. When it won't stop? 🤐." — COGITO-Swarm v1.5
+> 🦐 "Rule Router decides who speaks, Classifier decides who's best, Lock ensures only one, Agent decides what to say. Think Distributed · Act Centralized · Learn Verified. When it breaks? Gateway restart. When it loops? Circuit Breaker. When it won't stop? 🤐." — COGITO-Swarm v4.1
