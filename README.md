@@ -1,4 +1,4 @@
-# 🦐🧠 COGITO-Swarm v1.5
+# 🦐🧠 COGITO-Swarm v4.1
 
 **A multi-bot system that thinks proactively, collaborates cheaply, and isn't allowed to lie.**
 Integrated from COGITO v4 (proactive thinking) + Shrimp-OS v6 (multi-bot collaboration).
