@@ -17,6 +17,7 @@ security-audit-enhanced.sh
 
 # Python 測試
 *.py
+!state_server/state_server.py
 __pycache__/
 .venv/
 
