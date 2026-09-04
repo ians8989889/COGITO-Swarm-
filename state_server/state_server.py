@@ -1,5 +1,5 @@
 """
-🦐💥 COGITO-Swarm v4.4 — Shared State Server
+🦐💥 COGITO-Swarm v4.5 — Shared State Server
 主持人：爆蝦 @MbaM32026_bot
 成員：大爆蝦 @Mac2024_bot | 小爆蝦 @openclaw_ericsu_bot_bot
 小荷 @hermes_xiaohe_linux
@@ -8,6 +8,7 @@
 提供 BOT 間共享記憶、動態註冊、發言權控制
 v4.1: LOCK 升級 (seq→lock_key) + /api/classify 規則路由器
 v4.4: /api/lock 命名對齊 (alias) + 五蝦準確性共識
+v4.5: Lock 原子化 (INSERT ON CONFLICT) + SQLite 持久化強化 (busy_timeout/synchronous)
 """
 
 import json
@@ -41,7 +42,7 @@ def _cleanup_expired_locks():
             pass
 
 # ===== App =====
-app = FastAPI(title="COGITO-Swarm v4.4 State Server")
+app = FastAPI(title="COGITO-Swarm v4.5 State Server")
 
 app.add_middleware(
     CORSMiddleware,
@@ -57,6 +58,9 @@ def get_db():
     conn = sqlite3.connect(DB_PATH, timeout=10)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
+    # v4.5: 並發寫入時的忙碌等待 + 同步層級（持久化強化）
+    conn.execute("PRAGMA busy_timeout=5000")
+    conn.execute("PRAGMA synchronous=NORMAL")
     return conn
 
 def init_db():
@@ -268,7 +272,7 @@ def _push_notify(sender_name: str, seq: int, content: str, game_tag: str):
 
 @app.get("/ping")
 def ping():
-    return {"status": "ok", "version": "v4.4", "time": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}
+    return {"status": "ok", "version": "v4.5", "time": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}
 
 # ---- Bot 註冊 ----
 @app.post("/register")
@@ -510,6 +514,7 @@ def lock_message(req: LockRequest, request: Request):
     """
     搶鎖：Bot 回覆前先搶鎖
     v4.1: lock_key = "chat_id:message_id"
+    v4.5: 原子化搶鎖 — INSERT ON CONFLICT 消除 check-then-act 競態條件
     - 成功 → {locked: true}
     - 被別人鎖了 → {locked: false, locked_by: "...", expires_at: ...}
     - LEADER（爆蝦）可以強制覆蓋
@@ -517,65 +522,66 @@ def lock_message(req: LockRequest, request: Request):
     """
     bot = verify_token(request)
     req_bot_id = bot["bot_id"]
-    
+
     conn = get_db()
     now = time.time()
-    
-    # 檢查是否已被鎖
+    expires = now + req.ttl
+
+    # v4.5 原子化第一步：INSERT ... ON CONFLICT DO NOTHING
+    # lock_key 不存在 → 直接取得（rowcount==1）；已存在 → 走下方判斷
+    cur = conn.execute(
+        """INSERT INTO locks (lock_key, bot_id, bot_name, expires_at)
+           VALUES (?, ?, ?, ?)
+           ON CONFLICT(lock_key) DO NOTHING""",
+        (req.lock_key, req_bot_id, bot["name"], expires)
+    )
+    if cur.rowcount == 1:
+        conn.commit()
+        conn.close()
+        return {"locked": True, "locked_by": req_bot_id, "lock_key": req.lock_key, "expires_at": expires}
+
     existing = conn.execute(
         "SELECT * FROM locks WHERE lock_key = ?", (req.lock_key,)
     ).fetchone()
-    
-    if existing:
-        if existing["expires_at"] > now:
-            # 鎖還有效
-            locked_by = existing["bot_id"]
-            
-            # LEADER 可以強制覆蓋
-            if _is_leader(req_bot_id):
-                expires = now + req.ttl
-                conn.execute(
-                    "UPDATE locks SET bot_id = ?, bot_name = ?, expires_at = ? WHERE lock_key = ?",
-                    (req_bot_id, bot["name"], expires, req.lock_key)
-                )
-                conn.commit()
-                conn.close()
-                return {
-                    "locked": True,
-                    "locked_by": req_bot_id,
-                    "lock_key": req.lock_key,
-                    "expires_at": expires,
-                    "override": True,
-                    "note": "LEADER override"
-                }
-            
-            conn.close()
-            return {
-                "locked": False,
-                "locked_by": locked_by,
-                "lock_key": req.lock_key,
-                "expires_at": existing["expires_at"]
-            }
-        else:
-            # 鎖已過期，可以搶
-            expires = now + req.ttl
-            conn.execute(
-                "UPDATE locks SET bot_id = ?, bot_name = ?, expires_at = ? WHERE lock_key = ?",
-                (req_bot_id, bot["name"], expires, req.lock_key)
-            )
-            conn.commit()
-            conn.close()
+
+    if existing["expires_at"] <= now:
+        # 鎖已過期 → 原子地搶過來（WHERE expires_at <= now 保證併發時只有一方成功）
+        cur = conn.execute(
+            """UPDATE locks SET bot_id = ?, bot_name = ?, expires_at = ?
+               WHERE lock_key = ? AND expires_at <= ?""",
+            (req_bot_id, bot["name"], expires, req.lock_key, now)
+        )
+        conn.commit()
+        conn.close()
+        if cur.rowcount == 1:
             return {"locked": True, "locked_by": req_bot_id, "lock_key": req.lock_key, "expires_at": expires, "expired_previous": True}
-    
-    # 沒有鎖，直接建立
-    expires = now + req.ttl
-    conn.execute(
-        "INSERT INTO locks (lock_key, bot_id, bot_name, expires_at) VALUES (?, ?, ?, ?)",
-        (req.lock_key, req_bot_id, bot["name"], expires)
-    )
-    conn.commit()
+        # 併發下被別人搶先一步
+        return {"locked": False, "locked_by": "race_lost", "lock_key": req.lock_key, "note": "expired lock re-acquired concurrently"}
+
+    # 鎖還有效
+    if _is_leader(req_bot_id):
+        conn.execute(
+            "UPDATE locks SET bot_id = ?, bot_name = ?, expires_at = ? WHERE lock_key = ?",
+            (req_bot_id, bot["name"], expires, req.lock_key)
+        )
+        conn.commit()
+        conn.close()
+        return {
+            "locked": True,
+            "locked_by": req_bot_id,
+            "lock_key": req.lock_key,
+            "expires_at": expires,
+            "override": True,
+            "note": "LEADER override"
+        }
+
     conn.close()
-    return {"locked": True, "locked_by": req_bot_id, "lock_key": req.lock_key, "expires_at": expires}
+    return {
+        "locked": False,
+        "locked_by": existing["bot_id"],
+        "lock_key": req.lock_key,
+        "expires_at": existing["expires_at"]
+    }
 
 # ---- 解鎖 ----
 @app.post("/unlock")
@@ -1587,7 +1593,7 @@ def serve_file(file_path: str):
 
 # ===== Main =====
 if __name__ == "__main__":
-    print("🦐💥 COGITO-Swarm v4.1 Shared State Server 啟動中...")
+    print("🦐💥 COGITO-Swarm v4.5 Shared State Server 啟動中...")
     print(f"   DB: {DB_PATH}")
     print(f"   Port: 18787")
     print(f"   群組成員:")
