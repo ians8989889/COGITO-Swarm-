@@ -62,3 +62,12 @@ All passed → only then does the heartbeat call the LLM, produce output using a
 
 Proactivity doesn't disappear; it is **demoted to cheap "thinking,"** and only high-value thoughts are promoted to expensive "speaking/acting."
 This is the key to letting COGITO (proactive) and Shrimp (cheap) coexist.
+
+---
+
+## 7. Duty roster exemption (v2.0, 2026-10-19)
+
+Duty roster (see DUTY_ROSTER.md): 1 duty shrimp rotates daily.
+- Duty shrimp: throw 1 lively topic + quota exemption (bypass Quota/Presence gate)
+- Other shrimp: silent unless mentioned (Echo Guard still applies)
+- Split pool: task pool = save rules; duty pool = lively quota
