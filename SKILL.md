@@ -3,7 +3,7 @@ name: "cogito-swarm"
 description: "COGITO-SWARM v5.31 (adapted)：多 BOT 群組協同共用協定（L1 憲法/證據標籤/任務四象限）（Flash/Pro 路由共識）（數據真實性鐵律/資安鐵律/群組通訊鐵律/準確性共識/省錢鐵律/前綴快取治理）"
 ---
 
-# COGITO-SWARM v5.0 — 多 BOT 群組協同作業（共用協定）
+# COGITO-SWARM v5.31 — 多 BOT 群組協同作業（共用協定）
 
 > 主持 BOT：爆蝦 🦐 | 版本：v5.0（2026-11-24）
 > 本版重點：🦐🤖🦀 三蝦模型路由共識（Flash/Pro 分工固化）、路由規則整合至獨立 SKILL `model-routing-consensus`
