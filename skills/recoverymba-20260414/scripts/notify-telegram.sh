@@ -2,7 +2,8 @@
 # Telegram 通知腳本 - 完成後通知蝦老大
 
 # 配置
-TELEGRAM_BOT_TOKEN="8277120862:AAHJfb_GIMj-PG5nXw9KytfZxHeLTv94hZg"
+source "$HOME/.openclaw/credentials/telegram_bot_token"
+TELEGRAM_BOT_TOKEN="$BOT_TOKEN"
 TELEGRAM_CHAT_ID="8397380746"
 TELEGRAM_API="https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
 

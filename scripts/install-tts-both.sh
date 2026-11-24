@@ -43,7 +43,7 @@ set -e
 
 TEXT="${1:-測試}"
 CHAT_ID="${2:-8397380746}"
-BOT_TOKEN="8277120862:AAHJfb_GIMj-PG5nXw9KytfZxHeLTv94hZg"
+source "$HOME/.openclaw/credentials/telegram_bot_token"
 
 echo "🎤 生成語音..."
 MP3_FILE="/tmp/tts-reply-$RANDOM.mp3"

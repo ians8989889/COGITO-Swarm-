@@ -38,7 +38,7 @@ D. 別做：
 
 ## 三、三件事接線（Hermes 原生替代 OpenClaw）
 
-1. **註冊 SS 拿 token** → SS 現在是 `192.168.1.122:18787`（.103 回原 IP；.112 為 WiFi 期間）
+1. **註冊 SS 拿 token** → SS 現在是 `192.168.1.127:18787`（.103 回原 IP；.112 為 WiFi 期間）
 2. **讀寫 SS** → 用 `urllib` 打 SS HTTP API（等價 OpenClaw 的 state_client）
 3. **spawn** → 用 Hermes `delegate_task` 取代 `sessions_spawn`
 

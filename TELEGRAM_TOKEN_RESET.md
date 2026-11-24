@@ -30,7 +30,7 @@
 
 ```json
 "telegram": {
-  "botToken": "8673082349:AAHPzOsrC9bG1ZvtvGxh5UCnWp9OZMMzgIg"
+  "botToken": "***REDACTED***"
 }
 ```
 

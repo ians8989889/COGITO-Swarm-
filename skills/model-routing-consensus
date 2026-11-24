@@ -1,0 +1,102 @@
+---
+name: "model-routing-consensus"
+description: "三蝦共識：Flash vs Pro 模型路由分工規則。任務四象限分流。日常用 Flash、關鍵任務 spawn Pro，統一 OpenRouter 供應商。"
+---
+
+# 模型路由共識 v1.1 — Flash vs Pro 分工規則
+
+> 版本：v1.1（2026-11-24）
+> 共同制定：🦐 爆蝦、🤖 大爆蝦、🦀 小爆蝦（蝦蝦聊天室三蝦共識）
+> 核定：蝦老大 Eric Su
+
+---
+
+## 🎯 任務四象限分流（v1.1 新增，對齊 v5.31）
+
+根據任務性質分為四個象限，決定路由方式：
+
+| 象限 | 標籤 | 路由 | 說明 |
+|------|------|------|------|
+| 🟢 CASUAL | 日常無副作用 | Flash | 一般聊天、工具調用、簡單查詢、被動應對 |
+| 🟣 BRAINSTORM | 發想推演 | Flash | 腦力激盪、假設推演、反方觀點。標記 [發想/假設]，豁免懲罰但不驅動執行 |
+| 🔴 CRITICAL | 判斷/審查/寫碼 | Pro | 寫 code、覆核、安全審查、除錯、成本診斷、事故復盤 |
+| ⚫ ACT | 對外/修改/付費 | Pro + 授權 | 發文、寄信、上架、刪檔、付費。必須搶鎖 + 白名單授權 |
+
+### 四象限快速判斷
+
+```text
+收到任務 →
+  ├─ 會對外造成影響？(發文/寄信/付費/刪檔)
+  │   └─ ACT → spawn Pro + 搶鎖 + 白名單授權
+  ├─ 會出後果？(寫code/審查/安全/復盤/仲裁/新流程/老大說"分析")
+  │   └─ CRITICAL → spawn Pro
+  ├─ 需創意發想？(假設推演/腦力激盪/反方觀點)
+  │   └─ BRAINSTORM → Flash + 標記 [發想/假設]
+  └─ 以上皆非（聊天/工具/查詢/爬蟲/被動應對）
+      └─ CASUAL → Flash 打發
+```
+
+> BRAINSTORM 象限是 CON-01 沉默紀律與 CREATIVITY 之間的調和出口。
+> 可以在 [發想/假設] 保護傘下自由思考，但不通過 Evidence Gate 不得轉為正式事實。
+
+---
+
+## 核心原則
+
+一句話：會出後果的事 spawn Pro，不會的事 Flash 打發。
+
+---
+
+## ⚡ Flash — 日常主力（CASUAL + BRAINSTORM）
+
+| 用途 | 象限 | 說明 |
+|------|------|------|
+| 主 session 聊天應對 | CASUAL | 一般對話、問候、日常回覆 |
+| 工具調用 | CASUAL | 檔案操作、讀 config、跑腳本、查狀態 |
+| 簡單查詢 | CASUAL | 爬蟲、文字摘要、日期確認、格式化輸出 |
+| YT 腳本初稿 | CASUAL | 先用 Flash 起草，卡關再升 Pro |
+| 彩券預測 | CASUAL | 三大 LLM 投票可用 Flash 省錢 |
+| 快速驗證 | CASUAL | 試探性任務、先確認可行再考慮 Pro |
+| 群組被動應對 | CASUAL | 不點名不回應、單純同意跟附 |
+| BRAINSTORM 發想 | BRAINSTORM | 腦力激盪、假設推演，標記 [發想/假設] |
+
+---
+
+## 💎 Pro — 關鍵任務（CRITICAL + ACT）
+
+| 用途 | 象限 | 說明 |
+|------|------|------|
+| 寫 code / 多步推理 | CRITICAL | 邏輯鏈長、錯一步全歪 |
+| 覆核 / 審查 | CRITICAL | 數據交叉比對、ACCURACY_LOG 核驗、審其他 Bot 報告 |
+| 安全審查 | CRITICAL | 任何涉及外部行動的決策（發文、寄信、上架） |
+| 除錯分析 | CRITICAL | 腳本連錯、邏輯錯誤的深度追蹤 |
+| 新流程評估 | CRITICAL | 第一次跑的新流程先用 Pro 評估可行性 |
+| 深度多模態分析 | CRITICAL | 圖表細節分析、複雜圖片理解 |
+| 事故復盤 / 仲裁 | CRITICAL | 成本診斷、架構評估、跨機交叉驗證 |
+| 外部操作 | ACT | 發文/寄信/上架/付費，需搶鎖 + 白名單授權 |
+
+---
+
+## 🖼️ 多模態（圖片理解）處理原則
+
+- 簡單圖片辨識：本機 Ollama gemma4（免費）
+- 深度圖表分析、數據擷取：spawn Pro
+- PDF 掃描等內嵌圖片：spawn Pro
+
+---
+
+## 🔧 Provider 單一化
+
+- 所有 Bot 統一走 OpenRouter（baseUrl = https://openrouter.ai/api/v1）
+- 直連 DeepSeek API 僅保留作為 fallback
+- 主模型：openrouter/deepseek/deepseek-v4-flash
+- Pro 模型：openrouter/deepseek/deepseek-v4-pro
+
+---
+
+## 📊 改版紀錄
+
+| 版本 | 日期 | 改動 |
+|------|------|------|
+| v1.1 | 2026-11-24 | 新增任務四象限分流（CASUAL/BRAINSTORM/CRITICAL/ACT），對齊 v5.31 |
+| v1.0 | 2026-11-24 | 三蝦共識：Flash vs Pro 分工、Provider 統一、多模態處理原則 |

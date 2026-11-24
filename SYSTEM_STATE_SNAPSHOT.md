@@ -49,7 +49,7 @@ OLLAMA_MEMORY_THRESHOLD=0.9
 ### 3. OpenClaw 核心設定
 - **Gateway 綁定：** loopback (127.0.0.1:18789)
 - **Tailscale：** off（無遠端存取）
-- **Telegram Token：** `8277120862:AAHJfb_GIMj-PG5nXw9KytfZxHeLTv94hZg`
+- **Telegram Token：** `***REDACTED***`
 - **Telegram 白名單：** `8397380746`（僅蝦老大）
 - **Exec 核准：** disabled（自動執行）
 - **安全檢查：** enabled（每 8 小時）

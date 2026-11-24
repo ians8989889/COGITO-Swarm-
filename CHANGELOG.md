@@ -181,3 +181,22 @@
 
 ## v1.0
 - 初始版本：COGITO v4 × Shrimp-OS v6 整合
+
+## v5.31 (2026-11-24) — 🦐 L1 憲法 + 五級證據標籤 + 任務四象限 + 沉默紀律
+
+> 主持 BOT：爆蝦 🦐
+
+### 核心變更
+- L1 憲法 CON-01~06：行為底線 650 字
+- 五級證據標籤：[實測]/[推算]/[引用]/[待查]/[發想/假設]
+- 任務四象限：CASUAL/BRAINSTORM/CRITICAL/ACT → Flash/Pro 分流
+- CON-01 沉默紀律：不貼小劇場 + 一次講透 + 零內部外洩
+- Bot 生命週期：JOINING→READY→BUSY→DRAINING→OFFLINE
+- SOUL.md 模版化：Owns/Does Not Own 分野
+- model-routing-consensus SKILL v1.1：四象限分流矩陣
+
+### 已更新檔案
+- SKILL.md → v5.31 adapted（L1 憲法 + 證據標籤 + 任務四象限）
+- skills/cogito-swarm/SKILL.md → 同上
+- skills/model-routing-consensus/SKILL.md → v1.1
+

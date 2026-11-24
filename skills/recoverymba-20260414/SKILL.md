@@ -55,7 +55,7 @@ OLLAMA_MEMORY_THRESHOLD=0.9
 
 ### OpenClaw Configuration
 - **Gateway Bind:** loopback (127.0.0.1:18789)
-- **Telegram Token:** `8277120862:AAHJfb_GIMj-PG5nXw9KytfZxHeLTv94hZg`
+- **Telegram Token:** `***REDACTED***`
 - **Telegram Allowlist:** `8397380746` (only Eric Su)
 - **Exec Approvals:** disabled (auto-execute)
 - **Tailscale:** off
@@ -159,7 +159,7 @@ sleep 2
 # Check token is correct
 grep "botToken" ~/.openclaw/openclaw.json
 
-# If wrong, update to: 8277120862:AAHJfb_GIMj-PG5nXw9KytfZxHeLTv94hZg
+# If wrong, update to: ***REDACTED***
 # Then restart gateway
 openclaw gateway restart
 ```

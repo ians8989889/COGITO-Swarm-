@@ -1,3 +1,5 @@
+> ⚠️ 端點已過期：本文件內文的 192.168.1.103 等為歷史紀錄。2026-11-08 現行 SS Server 為 http://192.168.1.125:18787；連線前先跑 \`ipconfig getifaddr en0\`，本機自我呼叫用 127.0.0.1。
+
 # 🌍 World-Class SS Server 建置手冊
 # World-Class Shared State Server Build Guide
 

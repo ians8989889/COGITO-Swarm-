@@ -4,7 +4,7 @@
 
 set -e
 
-BOT_TOKEN="8673082349:AAHPzOsrC9bG1ZvtvGxh5UCnWp9OZMMzgIg"
+source "$HOME/.openclaw/credentials/telegram_bot_token"
 OFFSET_FILE="$HOME/.openclaw/workspace/state/telegram_offset"
 GATEWAY_URL="http://localhost:18789"
 GATEWAY_TOKEN="4885b728c3ab2eff987e850d5ca113460eb0f9f4aa729a43"

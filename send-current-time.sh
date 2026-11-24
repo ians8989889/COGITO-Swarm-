@@ -1,5 +1,5 @@
 #!/bin/bash
-BOT_TOKEN="8673082349:AAHPzOsrC9bG1ZvtvGxh5UCnWp9OZMMzgIg"
+source "$HOME/.openclaw/credentials/telegram_bot_token"
 CHAT_ID="8397380746"
 VOICE_FILE="/Users/ericsu/.openclaw/workspace/current-time.mp3"
 

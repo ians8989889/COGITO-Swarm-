@@ -1,12 +1,12 @@
 ---
 name: "cogito-swarm"
-description: "COGITO-SWARM v4.8：多 BOT 群組協同共用協定（數據真實性鐵律/資安鐵律/群組通訊鐵律/準確性共識/省錢鐵律/前綴快取治理）"
+description: "COGITO-SWARM v5.31 (adapted)：多 BOT 群組協同共用協定（L1 憲法/證據標籤/任務四象限）（Flash/Pro 路由共識）（數據真實性鐵律/資安鐵律/群組通訊鐵律/準確性共識/省錢鐵律/前綴快取治理）"
 ---
 
-# COGITO-SWARM v4.8 — 多 BOT 群組協同作業（共用協定）
+# COGITO-SWARM v5.0 — 多 BOT 群組協同作業（共用協定）
 
-> 主持 BOT：爆蝦 🦐 | 版本：v4.8（2026-10-19）
-> 本版重點：🛡️ Token 防線（行為層真沉默/不重複/查 claim + 監控層 token 看門狗 + 配置層節流）
+> 主持 BOT：爆蝦 🦐 | 版本：v5.0（2026-11-24）
+> 本版重點：🦐🤖🦀 三蝦模型路由共識（Flash/Pro 分工固化）、路由規則整合至獨立 SKILL `model-routing-consensus`
 > 🔥 背景：蝦老大提出消除 AI 亂報/推測不準確性，五蝦各自提案後高度收斂，形成本整合協定。
 
 ---
@@ -306,8 +306,10 @@ topic 命名：task:換LLM、task:清分身、task:切DeepSeek（task: 前綴 + 
 |------|------|
 | SS Lock API | `POST/GET /api/lock` — 通用分散式鎖 |
 | SS Classifier API | `POST /api/classify` — 輕量分類層 |
-| SS File Server | `192.168.1.103:8789/files/` |
-| SS 主機 | `192.168.1.103:18787` |
+| SS File Server | `http://<SS_HOST>:8789/files/` |
+| SS 主機 | `http://<SS_HOST>:18787`（健康檢查 `GET /ping` 回版本字串，如 `v4.5`） |
+
+> 🚨 **IP 不寫死**：SS 主機（大爆蝦 Mac2024）是 DHCP，已漂移多次（.103 → .123 → .122 → .116 → .127）。現行 IP 唯一來源＝`memory/ss-check-state.json` 的 `ss.host` / `ss.backup`；文件或腳本裡出現具體 IP 就是過期風險。定位與同步流程見 skill `lan-endpoint-drift`（先確認自己是否同網段，再改依賴檔）。
 
 ### 實作指引
 
@@ -346,7 +348,108 @@ topic 命名：task:換LLM、task:清分身、task:切DeepSeek（task: 前綴 + 
 
 ---
 
+---
+
+## 🦐 模型路由與 Spawn 規範（v4.9 新增，2026-11-17）
+
+> 背景：2026-11-17 蝦老大決定全面轉用 OpenRouter（避開直連 DeepSeek 的尖峰加權），全員改用 flash 作為 primary、深度分析 spawn pro。shared key（原始 sk-or 金鑰）已死（401），暫用 checking key 頂替，等新 key 到位後換回。
+
+### M1：Provider 統一走 OpenRouter
+
+- baseUrl = `https://openrouter.ai/api/v1`
+- 所有 Bot 的 primary/fallyback/spawn 必須使用 openrouter provider
+- 直連 DeepSeek API 僅保留作為 **fallback**（OpenRouter 不可用時）
+- 直連定價與 OpenRouter 對照：
+
+| 情境 | 直連 DeepSeek | OpenRouter |
+|------|--------------|------------|
+| Flash （非尖峰） | $0.28/$0.14/M | $0.09/$0.18/M |
+| Flash （尖峰 09-12,14-18） | 同左（無尖峰） | 同左（無尖峰） |
+| Pro （非尖峰） | $1.74/$3.48/M | $0.90/$1.50/M |
+| Pro （尖峰輸出） | $3.96/M | $1.50/M（固定） |
+
+### M2：模型分層
+
+- **Primary（預設）**：`openrouter/deepseek/deepseek-v4-flash`（非 reasoning，$0.09/$0.18）
+- **Spawn／Subagent（深度任務）**：`openrouter/deepseek/deepseek-v4-pro`（reasoning，$0.90/$1.50）
+- **Fallback 優先序**：openrouter flash → deepseek flash（直連備援）
+- **Subagent 預設模型**：openrouter flash（只有判斷型任務才 override 為 pro）
+
+> ⛔ 覆蓋與注意：本規則取代 v4.7 的 C11「不換Flash」（2026-10-14 決定）。當時的考量在直連 DeepSeek 的尖峰定價結構下成立；走 OpenRouter 後 Flash 與 Pro 價差大幅縮小，且 Flash 在 agent 任務（聊天/工具/查詢）中表現足夠，因此改為此分層。
+
+### M3：Spawn 判斷三級制（各 Bot 共通規則）
+
+收到任務後，按以下分類決定是否需要 spawn pro：
+
+#### 🔴 固定 spawn pro（不用想，直接開）
+
+任何滿足以下條件之一的任務，**固定使用 pro**：
+
+- 成本診斷／架構評估／事故復盤 → 算錯有實質後果（掉錢、延誤）
+- 寫 Code／多步推理 → 邏輯鏈長、錯一步全歪
+- 仲裁／審查其他 Bot 報告 → 需跨機交叉驗證、不依賴單一判斷
+- 蝦老大明確說「分析」「判斷」「評估」「審查」 → 這是判斷型任務
+
+#### 🟡 可選 spawn pro（先 flash 跑，卡住再升）
+
+以下任務先用 flash 處理，如果遇到以下情況再升級為 pro：
+
+- **審稿（一般文稿）** → flash 先過一遍，若邏輯有洞或需深度事實驗證 → spawn pro 複審
+- **YT 腳本／文案** → flash 先起草，若需創意連貫性或劇情潤飾 → spawn pro 修飾（品質敏感但仍試 flash）
+- **複雜查詢** → flash 先回，若需要追數據來源或驗算式 → spawn pro
+
+升級時機：flash 版回覆若發現「這個答案我不確定→標 [待查]」時，自動 spawn pro 重做。
+
+#### 🟢 flash 打發（不用 spawn）
+
+以下任務 **只使用 flash**，不用 spawn pro：
+
+- 聊天／幹話／日常回覆
+- 工具調用（查 config、貼狀態、讀檔案、下指令）
+- 群組被動應對（不點名不回應、同意跟附等）
+- 簡單查詢（文字摘要、日期確認、格式化）
+
+#### 🚦 一句話規則
+
+> **會出後果的事 spawn pro，不會的事 flash 打發。**
+
+### M4：OpenRouter 金鑰現況
+
+| 金鑰 | 狀態 | 備註 |
+|------|------|------|
+| Shared key 原始 sk-or 金鑰 | 🔴 401「User not found」 | 帳號／金鑰已死，等待蝦老大給新 key |
+| Checking key（b6aba033 結尾） | 🟢 HTTP 200 | 臨時頂替，所有 Bot 可先用此金鑰 |
+| 新 Shared key | ⏳ 等蝦老大發放 | 到貨後各 Bot 用 masked / SecretRef 方式更新，**不貼群** |
+
+### M5：各 Bot 現行配置摘要（2026-11-17 實測）
+
+| Bot | 主機 | Primary | Fallback | Subagent | 金鑰 |
+|-----|------|---------|----------|----------|------|
+| 🦐 爆蝦 | .110 MBAM3 | `openrouter/deepseek/deepseek-v4-flash` | `openrouter/deepseek/deepseek-v4-pro` → `deepseek/deepseek-v4-flash` | `openrouter/deepseek/deepseek-v4-pro` | checking key 🟢 |
+| 🤖 大爆蝦 | .104 Mac2024 | `openrouter/deepseek/deepseek-v4-flash` | ⏳ gateway 重啟中 | `openrouter/deepseek/deepseek-v4-pro` | checking key 🟢 |
+| 🦀 小爆蝦 | .105 MacMini2012 | `openrouter/deepseek/deepseek-v4-flash` | `deepseek/deepseek-v4-flash` | `openrouter/deepseek/deepseek-v4-pro` | checking key 🟢 |
+
+---
+
+### M6：路由共識正式化（v5.0 新增，2026-11-24）
+
+> 三蝦（🦐 爆蝦、🤖 大爆蝦、🦀 小爆蝦）於 2026-11-24 達成模型路由共識，經蝦老大 Eric Su 核定。
+
+- 完整 Flash/Pro 分工規則已抽出為獨立 SKILL：**`model-routing-consensus`**（位置：`workshop-skills/model-routing-consensus/SKILL.md`）
+- 所有 Bot 開機必讀該 skill，按規則決定路由
+- Flash vs Pro 的快速決策：
+  - ⚡ **Flash 日常**：聊天、工具調用、簡單查詢、YT 初稿、被動應對
+  - 💎 **Pro 關鍵**：寫 code、覆核、安全審查、除錯、新流程評估、深度多模態分析
+  - 🟡 **可升級**：YT 腳本卡關、審稿遇邏輯漏洞、複雜查詢不確定 → 升 Pro
+- 多模態原則：簡單辨識用本機 Ollama gemma4，深度分析 spawn Pro
+- Provider 統一：OpenRouter，直連僅作 fallback
+
+> 🔗 參見：`model-routing-consensus` SKILL v1.0
+
 ## 📊 改版紀錄
+## 📊 改版紀錄
+| v5.0 | 2026-11-24 | 🦐🤖🦀 三蝦模型路由共識（Flash/Pro 分工）、新增 M6 路由共識正式化、整合至獨立 SKILL `model-routing-consensus` |
+| v4.9 | 2026-11-17 | 🦐 模型路由與 Spawn 規範：全面走 OpenRouter、primary flash、深度分析 spawn pro、三級 spawn 判斷規則、金鑰現況（M1-M5）改寫 v4.7 C11 |
 
 | 版本 | 日期 | 改動 |
 |------|------|------|
@@ -359,6 +462,7 @@ topic 命名：task:換LLM、task:清分身、task:切DeepSeek（task: 前綴 + 
 | v4.6 | 2026-10-13 | 💰 省錢鐵律（上下文治理/狀態快取/memory 合併/降級省錢）+ 🚨 無限 loop 失敗模式（超長 context → 模型退化 → 自觸發 loop → 噴錢） |
 | v4.8 | 2026-10-19 | 🛡️ Token 防線（真沉默/不重複/查 claim + token 看門狗 + 配置節流）+ Claim 去重慣例 |
 | v4.7 | 2026-10-14 | 🧊 前綴快取治理鐵律（C7-C10：前綴靜態化/鋸齒壓縮/本地歸檔+檢索/帳單熔斷器）+ 定價清醒（hit $0.022/M、miss $0.66/M 離峰 / $1.32/M 尖峰）。戳破 91% cache_miss 真因＝前綴動態污染，非對話長 |
+| v4.8.1 | 2026-10-25 | 🔌 SS 端點去硬編碼：SS 主機／File Server 改寫 `<SS_HOST>`（IP 查 `memory/ss-check-state.json`），新增 `lan-endpoint-drift` skill（先驗自己網段→定位→同步依賴→三級標記回報） |
 
 ---
 
@@ -645,6 +749,7 @@ ELSE → 正常模式
 - 連續 3 輪 cache hit < 70% → 前綴被污染，紅色告警
 
 ### C11：不換 Flash（蝦老大拍板 2026-10-14）
+> ⛔ **已由 v4.9 M2 取代**：走 OpenRouter 後 Flash 定價合理，改為 primary flash + 深度分析 spawn pro 分層。C11 保留作為歷史紀錄。
 - 🚫 不考慮換 Flash（品質太笨），維持 deepseek-v4-pro
 - 省錢靠前綴淨化／批次壓縮／離峰排程，不動模型品質底線
 

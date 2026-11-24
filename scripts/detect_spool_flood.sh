@@ -26,7 +26,7 @@ set -euo pipefail
 # ---- 設定 ----
 SESSIONS_DIR="${HOME}/.openclaw/agents/main/sessions"
 BACKUP_DIR="${HOME}/.openclaw/agents/main/sessions/.spool_backups"
-SS_SERVER="http://192.168.1.103:18787"
+SS_SERVER="http://192.168.1.125:18787"
 BOT_ID="mac2024_bot"
 BOT_NAME="大爆蝦"
 
